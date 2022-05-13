@@ -75,10 +75,13 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer)
 
-        self.pushButton = QPushButton(self.centralwidget)
-        self.pushButton.setObjectName(u"pushButton")
+        self.restart_MCU = QPushButton(self.centralwidget)
+        self.restart_MCU.setObjectName(u"restart_MCU")
+        self.restart_MCU.setEnabled(True)
+        self.restart_MCU.setCheckable(False)
+        self.restart_MCU.setFlat(False)
 
-        self.horizontalLayout_2.addWidget(self.pushButton)
+        self.horizontalLayout_2.addWidget(self.restart_MCU)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -89,6 +92,9 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusBar)
 
         self.retranslateUi(MainWindow)
+
+        self.restart_MCU.setDefault(False)
+
 
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
@@ -113,6 +119,6 @@ class Ui_MainWindow(object):
 
         self.port_select.setItemText(0, QCoreApplication.translate("MainWindow", u"\u65ad\u5f00\u8fde\u63a5", None))
 
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u5355\u7247\u673a", None))
+        self.restart_MCU.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u5355\u7247\u673a", None))
     # retranslateUi
 

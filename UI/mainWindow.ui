@@ -94,7 +94,7 @@
       <item>
        <widget class="QPushButton" name="restart_MCU">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>重启单片机</string>

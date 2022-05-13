@@ -35,9 +35,7 @@ class Serial_Manager(QObject):
             if self.pyb is not None:
                 self.close_port()
             self.pyb = pyboard.Pyboard(port)
-            print(port)
             self.pyb.enter_raw_repl()
-            print(port)
             files = deal_files(self.pyb.fs_ls("", False))
         except Exception as e:
             self.port_erro_signal.emit(str(e))
@@ -53,6 +51,15 @@ class Serial_Manager(QObject):
         except Exception as e:
             self.port_erro_signal.emit(str(e))
         self.fresh_signal.emit(files)
+    
+    def reboot(self):
+        try:
+            if self.pyb is not None:
+                self.pyb.exit_raw_repl()
+                self.pyb.serial.write(b"from machine import reset\r\n")
+                self.pyb.serial.write(b"reset()\r\n")
+        except Exception as e:
+            self.port_erro_signal.emit(str(e))
 
     def close_port(self):
         """关闭串口"""

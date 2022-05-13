@@ -3,3 +3,5 @@
 #esp.osdebug(None)
 #import webrepl
 #webrepl.start()
+from machine import Pin
+P22 = Pin(22, Pin.OUT)

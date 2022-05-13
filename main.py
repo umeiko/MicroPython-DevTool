@@ -37,6 +37,7 @@ def bind_methods():
     main_window.port_select.wheelEvent=lambda *args: None
     main_window.MCU_files.customContextMenuRequested.connect(create_right_menu_MCU)
     main_window.PC_files.customContextMenuRequested.connect(create_right_menu_PC)
+    main_window.restart_MCU.clicked.connect(serial_manager.reboot)
 
 def func_for_show_ports(*args):
     """展示串口的函数"""
