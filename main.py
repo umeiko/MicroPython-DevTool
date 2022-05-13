@@ -21,11 +21,11 @@ global_options = {
 
 def init_methods():
     fresh_PC_files()
-    load_options()
+    func_for_fresh_MCU_files([])
 
 
 def close_methods(*args):
-    save_options()
+    pass
 
 
 def bind_methods():
@@ -87,7 +87,6 @@ def create_right_menu_MCU():
     action_2.triggered.connect(lambda:remove_file("MCU", main_window.MCU_files.currentItem().text()))
     menu.addAction(action_2)
     menu.exec(QCursor.pos())
-    print(main_window.MCU_files.currentItem().text())
 
 def create_right_menu_PC():
     """右键菜单"""
@@ -99,13 +98,6 @@ def create_right_menu_PC():
     action_2.triggered.connect(lambda:remove_file("PC", main_window.PC_files.currentItem().text()))
     menu.addAction(action_2)
     menu.exec(QCursor.pos())
-
-def save_options():
-    """导出主窗口的配置到文件中"""
-    import json as json
-    with open("main_config.json", 'w') as js_file:
-        js_string = json.dumps(global_options, sort_keys=True, indent=4, separators=(',', ': '))
-        js_file.write(js_string)
 
 def func_for_serial_erro(*args):
     """串口异常处理的函数"""
@@ -127,7 +119,7 @@ def fresh_PC_files():
     """刷新电脑的文件"""
     main_window.PC_files.clear()
     for i in os.listdir():
-        if os.path.isfile(i):
+        if os.path.isfile(i) and not i.endswith(".exe"):
             a = QListWidgetItem()
             a.setText(i)
             main_window.PC_files.addItem(a)
@@ -138,13 +130,17 @@ def file_transport(device:str, file_name:str):
     if serial_manager.pyb is not None:
         if device == "PC":
             try:
+                serial_manager.pyb.enter_raw_repl()
                 serial_manager.pyb.fs_put(file_name, file_name)
                 serial_manager.fresh_files()
+                main_window.statusBar.showMessage(f"已传输{file_name}")
             except Exception as e:
                 func_for_serial_erro(str(e))
         elif device == "MCU":
             try:
+                serial_manager.pyb.enter_raw_repl()
                 serial_manager.pyb.fs_get(file_name, file_name)
+                serial_manager.fresh_files()
                 fresh_PC_files()
             except Exception as e:
                 func_for_serial_erro(str(e))
@@ -159,24 +155,14 @@ def remove_file(device:str, file_name:str):
     elif device == "MCU":
         if serial_manager.pyb is not None:
             try:
+                serial_manager.pyb.enter_raw_repl()
                 serial_manager.pyb.fs_rm(file_name)
                 serial_manager.fresh_files()
+                main_window.statusBar.showMessage(f"已删除{file_name}")
             except Exception as e:
                 func_for_serial_erro(str(e))
         else:
             main_window.statusBar.showMessage("未连接！删除无效")
-
-def load_options():
-    global global_options
-    import json as json
-    try:
-        with open("main_config.json", 'r') as js_file:
-            temp_robo_options = json.load(js_file)
-    except BaseException as e:
-        with open("main_config.json", 'w') as js_file:
-            js_string = json.dumps(global_options, sort_keys=True, indent=4, separators=(',', ': '))
-            js_file.write(js_string)
-        temp_robo_options = global_options.copy()
 
 def main():
     bind_methods()

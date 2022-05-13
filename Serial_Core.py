@@ -37,6 +37,7 @@ class Serial_Manager(QObject):
             self.pyb = pyboard.Pyboard(port)
             self.pyb.enter_raw_repl()
             files = deal_files(self.pyb.fs_ls("", False))
+            self.pyb.exit_raw_repl()
         except Exception as e:
             self.port_erro_signal.emit(str(e))
         self.fresh_signal.emit(files)
@@ -48,6 +49,7 @@ class Serial_Manager(QObject):
             if self.pyb is not None:
                 self.pyb.enter_raw_repl()
                 files = deal_files(self.pyb.fs_ls("", False))
+                self.pyb.exit_raw_repl()
         except Exception as e:
             self.port_erro_signal.emit(str(e))
         self.fresh_signal.emit(files)
