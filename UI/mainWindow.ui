@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>521</width>
-    <height>483</height>
+    <width>555</width>
+    <height>414</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -92,9 +92,28 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="port_exec">
+        <property name="minimumSize">
+         <size>
+          <width>90</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>命令行调试</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="restart_MCU">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>90</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="text">
          <string>重启单片机</string>

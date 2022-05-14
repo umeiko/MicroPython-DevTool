@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.2.3
+## Created by: Qt User Interface Compiler version 6.2.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(521, 483)
+        MainWindow.resize(555, 414)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -75,9 +75,16 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer)
 
+        self.port_exec = QPushButton(self.centralwidget)
+        self.port_exec.setObjectName(u"port_exec")
+        self.port_exec.setMinimumSize(QSize(90, 0))
+
+        self.horizontalLayout_2.addWidget(self.port_exec)
+
         self.restart_MCU = QPushButton(self.centralwidget)
         self.restart_MCU.setObjectName(u"restart_MCU")
         self.restart_MCU.setEnabled(True)
+        self.restart_MCU.setMinimumSize(QSize(90, 0))
         self.restart_MCU.setCheckable(False)
         self.restart_MCU.setFlat(False)
 
@@ -119,6 +126,7 @@ class Ui_MainWindow(object):
 
         self.port_select.setItemText(0, QCoreApplication.translate("MainWindow", u"\u65ad\u5f00\u8fde\u63a5", None))
 
+        self.port_exec.setText(QCoreApplication.translate("MainWindow", u"\u547d\u4ee4\u884c\u8c03\u8bd5", None))
         self.restart_MCU.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u5355\u7247\u673a", None))
     # retranslateUi
 
