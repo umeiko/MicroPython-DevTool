@@ -67,7 +67,7 @@ def bind_methods():
     shortcut_TAB.activated.connect(func_for_auto_complete)
     labelWeb = QLabel()
     labelWeb.setText(
-        '''<a style="font-family: 微软雅黑; color: #0000FF; font-size: 10pt;  text-decoration: none" href="https://github.com/umeiko/ESPTOOL-GUI"> 关于本项目</a>'''
+        '''<a style="font-family: 微软雅黑; color: #0000FF; font-size: 10pt;  text-decoration: none" href="https://github.com/umeiko/MicroPython-FileManager"> 关于本项目</a>'''
     )
     labelWeb.setOpenExternalLinks(True)
     main_window.statusBar.addPermanentWidget(labelWeb, stretch=0)
