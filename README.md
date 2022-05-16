@@ -13,3 +13,10 @@
 调试程序，支持Tab自动补全代码
 
 ![image](https://user-images.githubusercontent.com/58870893/168427872-b8677c3c-ef77-4508-8585-de3f01155e30.png)
+
+
+双击直接打开并编辑代码
+
+(Ctrl +) (Ctrl -) 调整文本尺寸，退出自动保存
+
+![image](https://user-images.githubusercontent.com/58870893/168611599-a4675fcb-4f75-44cf-873d-972d0c0b70bb.png)
