@@ -122,27 +122,6 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
 
 
-# def open_file(fName:str):
-#     try:
-#         with open(fName, "r", encoding="utf-8") as f:
-#             contens = f.read()
-#     except BaseException as e:
-#         return str(e)
-#     app = QDialog()
-#     app.setWindowTitle(fName)
-#     icon = QIcon()
-#     icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.On)
-#     app.setWindowIcon(icon)
-#     codeEditor = QCodeEditor(app)
-#     codeEditor.fName = fName
-#     codeEditor.resize(800, 800)
-#     codeEditor.zoomIn(5)
-#     codeEditor.setPlainText(contens)
-#     codeEditor.show()
-#     app.exec()
-#     codeEditor.saveFile()
-#     return f"File \"{fName}\" saved"
-
 def open_file(fName:str):
     try:
         with open(fName, "r", encoding="utf-8") as f:
