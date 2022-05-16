@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, QRect, QSize
-from PySide6.QtWidgets import QWidget, QPlainTextEdit, QTextEdit, QDialog
+from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication
+from PySide6.QtWidgets import QWidget, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
 from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon
 import rc
 
@@ -103,6 +103,45 @@ class QCodeEditor(QPlainTextEdit):
             with open(self.fName, "w", encoding="utf-8") as f:
                 f.write(self.toPlainText())
 
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        if not Dialog.objectName():
+            Dialog.setObjectName(u"Dialog")
+        Dialog.resize(800, 800)
+        self.gridLayout = QGridLayout(Dialog)
+        self.gridLayout.setSpacing(0)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.QCodeEditor = QCodeEditor(Dialog)
+        self.QCodeEditor.setObjectName(u"QCodeEditor")
+        self.gridLayout.addWidget(self.QCodeEditor, 0, 0, 1, 1)
+        self.retranslateUi(Dialog)
+        QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
+
+
+# def open_file(fName:str):
+#     try:
+#         with open(fName, "r", encoding="utf-8") as f:
+#             contens = f.read()
+#     except BaseException as e:
+#         return str(e)
+#     app = QDialog()
+#     app.setWindowTitle(fName)
+#     icon = QIcon()
+#     icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.On)
+#     app.setWindowIcon(icon)
+#     codeEditor = QCodeEditor(app)
+#     codeEditor.fName = fName
+#     codeEditor.resize(800, 800)
+#     codeEditor.zoomIn(5)
+#     codeEditor.setPlainText(contens)
+#     codeEditor.show()
+#     app.exec()
+#     codeEditor.saveFile()
+#     return f"File \"{fName}\" saved"
 
 def open_file(fName:str):
     try:
@@ -111,18 +150,19 @@ def open_file(fName:str):
     except BaseException as e:
         return str(e)
     app = QDialog()
+    codeEditor = Ui_Dialog()
+    codeEditor.setupUi(app)
     app.setWindowTitle(fName)
     icon = QIcon()
     icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.On)
     app.setWindowIcon(icon)
-    codeEditor = QCodeEditor(app)
-    codeEditor.fName = fName
-    codeEditor.resize(800, 800)
-    codeEditor.zoomIn(5)
-    codeEditor.setPlainText(contens)
-    codeEditor.show()
+    
+
+    codeEditor.QCodeEditor.fName = fName
+    codeEditor.QCodeEditor.zoomIn(5)
+    codeEditor.QCodeEditor.setPlainText(contens)
     app.exec()
-    codeEditor.saveFile()
+    codeEditor.QCodeEditor.saveFile()
     return f"File \"{fName}\" saved"
 
 if __name__ == '__main__':
