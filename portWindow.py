@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'portWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.2.2
+## Created by: Qt User Interface Compiler version 6.2.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -18,12 +18,16 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLineEdit,
     QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
     QTextBrowser, QVBoxLayout, QWidget)
+import rc
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
         Dialog.resize(559, 405)
+        icon = QIcon()
+        icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.Off)
+        Dialog.setWindowIcon(icon)
         self.verticalLayout = QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()

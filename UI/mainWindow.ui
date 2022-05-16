@@ -13,6 +13,11 @@
   <property name="windowTitle">
    <string>MicroPython文件助手</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normalon>:/ROOT/1.ico</normalon>
+   </iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -135,6 +140,8 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="rc.qrc"/>
+ </resources>
  <connections/>
 </ui>

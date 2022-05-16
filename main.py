@@ -1,5 +1,6 @@
 from mainWindow import Ui_MainWindow
 from portWindow import Ui_Dialog
+import codeEditor
 import Serial_Core
 from PySide6 import QtCore
 from PySide6.QtGui import QIcon, QShortcut, QAction,QCursor
@@ -248,14 +249,19 @@ def remove_file(device:str, file_name:str):
 
 def open_file(device:str, file_name:str):
     """打开文件"""
+    fresh_PC_files()
     if device == "PC":
-        os.system(file_name)
+        if file_name.endswith((".txt", ".py", ".json", 
+                                ".yaml", ".c", ".h", 
+                                ".ino", ".cpp", ".ui", 
+                                ".csv", ".bat", ".md")):
+            main_window.statusBar.showMessage(codeEditor.open_file(file_name))
     elif device == "MCU":
         try:
             serial_manager.pyb.enter_raw_repl()
             serial_manager.pyb.fs_get(file_name, "_"+file_name)
             fresh_PC_files()
-            os.system("_"+file_name)
+            main_window.statusBar.showMessage(codeEditor.open_file("_"+file_name))
         except Exception as e:
             func_for_serial_erro(str(e))
 
