@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>559</width>
-    <height>405</height>
+    <width>481</width>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -60,8 +60,27 @@
        </item>
        <item>
         <widget class="QPushButton" name="stopRun">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="text">
           <string>停止运行</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="rebootMCU">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>重启单片机</string>
          </property>
         </widget>
        </item>
@@ -96,6 +115,9 @@
        </property>
        <property name="shortcut">
         <string>Ctrl+A</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

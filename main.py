@@ -2,9 +2,10 @@ from mainWindow import Ui_MainWindow
 from portWindow import Ui_Dialog
 import codeEditor
 import Serial_Core
-from PySide6 import QtCore
+
 from PySide6.QtGui import QIcon, QShortcut, QAction,QCursor
-from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QListWidgetItem, QMenu, QLabel
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QListWidgetItem, QMenu, QLabel, QLineEdit, QGridLayout
 import sys
 import os
 
@@ -56,6 +57,7 @@ def bind_methods():
     port_dialog.Clear.clicked.connect(port_dialog.recv_Text.clear)
     port_dialog.AutoLast.toggled.connect(func_jump_to_last_line)
     port_dialog.stopRun.clicked.connect(lambda: serial_thread.serial.write(b"\r\x03\x03"))
+    port_dialog.rebootMCU.clicked.connect(lambda: serial_thread.serial.write(b"from machine import reset\r\nreset()\r\n"))
     w_p.rejected.connect(func_for_close_port_dialog)
     w_p.closeEvent = func_for_close_port_dialog
 
@@ -129,6 +131,15 @@ def create_right_menu_PC():
     action_1 = QAction(text="上传到单片机")
     action_1.triggered.connect(lambda:file_transport("PC", main_window.PC_files.currentItem().text()))
     menu.addAction(action_1)
+
+    action_3 = QAction(text="刷新")
+    action_3.triggered.connect(fresh_PC_files)
+    menu.addAction(action_3)
+
+    action_4 = QAction(text="重命名")
+    action_4.triggered.connect(lambda: rename_file(main_window.PC_files.currentItem().text()))
+    menu.addAction(action_4)
+
     action_2 = QAction(text="删除")
     action_2.triggered.connect(lambda:remove_file("PC", main_window.PC_files.currentItem().text()))
     menu.addAction(action_2)
@@ -204,13 +215,15 @@ def fresh_PC_files():
             main_window.PC_files.addItem(a)
     main_window.PC_files.setCurrentRow(0)
 
-def file_transport(device:str, file_name:str):
-    """传输文件"""
+def file_transport(device:str, file_name:str, out_name:str=None):
+    """传输文件 源文件设备 文件名 另存名"""
+    if out_name is None:
+        out_name = file_name
     if serial_manager.pyb is not None:
         if device == "PC":
             try:
                 serial_manager.pyb.enter_raw_repl()
-                serial_manager.pyb.fs_put(file_name, file_name)
+                serial_manager.pyb.fs_put(file_name, out_name)
                 serial_manager.fresh_files()
                 main_window.statusBar.showMessage(f"已传输{file_name}")
             except Exception as e:
@@ -222,7 +235,7 @@ def file_transport(device:str, file_name:str):
                 else:
                     main_window.statusBar.showMessage(f"下载文件{file_name}到本地")
                 serial_manager.pyb.enter_raw_repl()
-                serial_manager.pyb.fs_get(file_name, file_name)
+                serial_manager.pyb.fs_get(file_name, out_name)
                 serial_manager.fresh_files()
                 fresh_PC_files()
             except Exception as e:
@@ -258,12 +271,48 @@ def open_file(device:str, file_name:str):
             main_window.statusBar.showMessage(codeEditor.open_file(file_name))
     elif device == "MCU":
         try:
-            serial_manager.pyb.enter_raw_repl()
-            serial_manager.pyb.fs_get(file_name, "_"+file_name)
-            fresh_PC_files()
+            file_transport("MCU", file_name, "_"+file_name)
             main_window.statusBar.showMessage(codeEditor.open_file("_"+file_name))
+            file_transport("PC", "_"+file_name, file_name)
+            remove_file("PC", "_"+file_name)
         except Exception as e:
             func_for_serial_erro(str(e))
+
+def rename_file(file_name):
+    """弹出一个小窗口重命名文件"""
+    fName, fType = split_file_name(file_name)
+    redialog = QDialog()    
+    shortcut = QShortcut(redialog)
+    shortcut.setKey(u'Return')
+    shortcut.activated.connect(lambda: redialog.close())
+    shortcut2 = QShortcut(redialog)
+    shortcut2.setKey(u'Enter')
+    shortcut2.activated.connect(lambda: redialog.close())
+    gridLayout = QGridLayout(redialog)
+    gridLayout.setSpacing(0)
+    gridLayout.setObjectName(u"gridLayout")
+    gridLayout.setContentsMargins(0, 0, 0, 0)
+    redialog.setWindowFlag(Qt.FramelessWindowHint)
+    redialog.move(QCursor.pos())
+    Lin = QLineEdit(redialog)
+    Lin.setText(fName)
+    gridLayout.addWidget(Lin, 0, 0, 1, 1)
+    redialog.exec()
+    after_name = Lin.text()
+    if not os.path.exists(after_name+fType):
+        os.rename(file_name, after_name+fType)
+        main_window.statusBar.showMessage(f"{file_name}->{after_name+fType}")
+    else:
+        main_window.statusBar.showMessage(f"{after_name+fType} already exists.")
+    fresh_PC_files()
+
+def split_file_name(file:str):
+    """得到文件名与后缀分离的结果"""
+    out = ""
+    str_list = file.split(".")
+    for i in str_list[:-1]:
+        out += i
+    return out, "."+str_list[-1]
 
 def main():
     bind_methods()

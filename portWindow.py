@@ -24,7 +24,7 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
-        Dialog.resize(559, 405)
+        Dialog.resize(481, 369)
         icon = QIcon()
         icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.Off)
         Dialog.setWindowIcon(icon)
@@ -63,8 +63,15 @@ class Ui_Dialog(object):
 
         self.stopRun = QPushButton(Dialog)
         self.stopRun.setObjectName(u"stopRun")
+        self.stopRun.setMinimumSize(QSize(80, 0))
 
         self.horizontalLayout_2.addWidget(self.stopRun)
+
+        self.rebootMCU = QPushButton(Dialog)
+        self.rebootMCU.setObjectName(u"rebootMCU")
+        self.rebootMCU.setMinimumSize(QSize(80, 0))
+
+        self.horizontalLayout_2.addWidget(self.rebootMCU)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -77,6 +84,7 @@ class Ui_Dialog(object):
         self.AutoLast.setObjectName(u"AutoLast")
         self.AutoLast.setMinimumSize(QSize(120, 0))
         self.AutoLast.setLayoutDirection(Qt.RightToLeft)
+        self.AutoLast.setChecked(True)
 
         self.horizontalLayout_3.addWidget(self.AutoLast)
 
@@ -103,6 +111,7 @@ class Ui_Dialog(object):
         self.Sending.setShortcut(QCoreApplication.translate("Dialog", u"Enter", None))
 #endif // QT_CONFIG(shortcut)
         self.stopRun.setText(QCoreApplication.translate("Dialog", u"\u505c\u6b62\u8fd0\u884c", None))
+        self.rebootMCU.setText(QCoreApplication.translate("Dialog", u"\u91cd\u542f\u5355\u7247\u673a", None))
         self.AutoLast.setText(QCoreApplication.translate("Dialog", u"\u81ea\u52a8\u8f6c\u5230\u884c\u5c3e", None))
 #if QT_CONFIG(shortcut)
         self.AutoLast.setShortcut(QCoreApplication.translate("Dialog", u"Ctrl+A", None))

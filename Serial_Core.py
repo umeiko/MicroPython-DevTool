@@ -25,7 +25,7 @@ class Serial_Thread(threading.Thread, QObject):
         self.serial = serial.Serial(port)
         self.serial.timeout=0
         self.serial.baudrate=115200
-        self.jump_last = False
+        self.jump_last = True
     
     def run(self):
         temp = b""

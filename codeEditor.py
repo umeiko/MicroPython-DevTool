@@ -112,6 +112,7 @@ class Ui_Dialog(object):
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        
         self.QCodeEditor = QCodeEditor(Dialog)
         self.QCodeEditor.setObjectName(u"QCodeEditor")
         self.gridLayout.addWidget(self.QCodeEditor, 0, 0, 1, 1)
