@@ -3,7 +3,7 @@
 
 展示两端文件，方便同步
 
-![image](https://user-images.githubusercontent.com/58870893/168427782-e2524206-b539-48b0-82f3-ddf051a99a7f.png)
+![image](https://user-images.githubusercontent.com/58870893/170489860-74f274b7-83ed-415c-a5db-948518faa883.png)
 
 简单上传下载
 
