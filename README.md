@@ -12,7 +12,7 @@
 
 调试程序，支持Tab自动补全代码
 
-![image](https://user-images.githubusercontent.com/58870893/170490049-b5da73e8-96e8-4488-859f-537e4823abcf.png)
+![image](https://user-images.githubusercontent.com/58870893/170490165-a2c9ec12-24f0-48a8-abe5-393d0184afc1.png)
 
 双击直接打开并编辑代码
 
