@@ -26,7 +26,8 @@ global_options = {
     "temp_ports_list": [],
     "last_port"      : 0,
     "skin_mode"      : "Classic",
-    "PC_PATH"        : ".\\"
+    "PC_PATH"        : ".\\",
+    "Now_Focus"      : "PC"
 }
 
 supported_file_types = (".txt", ".py", ".json", 
@@ -68,6 +69,10 @@ def bind_methods():
     w_p.closeEvent = func_for_close_port_dialog
 
     # 其它设置
+    shortcut_rename = QShortcut(w)
+    shortcut_rename.setKey(u'F2')
+    shortcut_rename.activated.connect(lambda: rename_file(main_window.PC_files.currentItem().text()))
+    
     shortcut_send = QShortcut(w_p)
     shortcut_send.setKey(u'Return')
     shortcut_send.activated.connect(func_for_send_serial_msg)
