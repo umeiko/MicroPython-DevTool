@@ -37,6 +37,10 @@
             <property name="text">
              <string>新建项目</string>
             </property>
+            <property name="icon">
+             <iconset resource="rc.qrc">
+              <normaloff>:/ROOT/icons/txt.ico</normaloff>:/ROOT/icons/txt.ico</iconset>
+            </property>
            </item>
           </widget>
          </item>

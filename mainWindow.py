@@ -40,7 +40,10 @@ class Ui_MainWindow(object):
         self.gridLayout = QGridLayout(self.groupBox)
         self.gridLayout.setObjectName(u"gridLayout")
         self.PC_files = QListWidget(self.groupBox)
-        QListWidgetItem(self.PC_files)
+        icon1 = QIcon()
+        icon1.addFile(u":/ROOT/icons/txt.ico", QSize(), QIcon.Normal, QIcon.Off)
+        __qlistwidgetitem = QListWidgetItem(self.PC_files)
+        __qlistwidgetitem.setIcon(icon1);
         self.PC_files.setObjectName(u"PC_files")
         self.PC_files.setContextMenuPolicy(Qt.CustomContextMenu)
 

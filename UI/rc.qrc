@@ -1,5 +1,17 @@
 <RCC>
   <qresource prefix="ROOT">
+    <file>icons/bat.ico</file>
+    <file>icons/folder.svg</file>
+    <file>icons/c.ico</file>
+    <file>icons/cpp.ico</file>
+    <file>icons/csv.ico</file>
+    <file>icons/ino.ico</file>
+    <file>icons/json.ico</file>
+    <file>icons/md.ico</file>
+    <file>icons/py.ico</file>
+    <file>icons/txt.ico</file>
+    <file>icons/ui.ico</file>
+    <file>icons/yaml.ico</file>
     <file>1.ico</file>
   </qresource>
 </RCC>

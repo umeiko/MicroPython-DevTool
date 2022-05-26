@@ -4,7 +4,7 @@ import codeEditor
 import Serial_Core
 
 from PySide6.QtGui import QIcon, QShortcut, QAction,QCursor
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QListWidgetItem, QMenu, QLabel, QLineEdit, QGridLayout
 import sys
 import os
@@ -26,7 +26,13 @@ global_options = {
     "temp_ports_list": [],
     "last_port"      : 0,
     "skin_mode"      : "Classic",
+    "PC_PATH"        : ".\\"
 }
+
+supported_file_types = (".txt", ".py", ".json", 
+                        ".yaml", ".c", ".h", 
+                        ".ino", ".cpp", ".ui", 
+                        ".csv", ".bat", ".md")
 
 def init_methods():
     """启动函数"""
@@ -202,17 +208,47 @@ def func_for_fresh_MCU_files(lst:list):
     for i in lst:
         a = QListWidgetItem()
         a.setText(i.decode())
+        icon = QIcon()
+        _, ext = split_file_name(i.decode())
+        icon.addFile(f":/ROOT/icons/{ext[1:]}.ico", QSize(), QIcon.Normal, QIcon.Off)
+        a.setIcon(icon)
         main_window.MCU_files.addItem(a)
     main_window.MCU_files.setCurrentRow(0)
 
 def fresh_PC_files():
     """刷新电脑的文件"""
+    print(global_options["PC_PATH"])
     main_window.PC_files.clear()
-    for i in os.listdir():
-        if os.path.isfile(i) and not i.endswith(".exe"):
-            a = QListWidgetItem()
-            a.setText(i)
-            main_window.PC_files.addItem(a)
+    files   = []
+    folders = []
+    if global_options["PC_PATH"] != ".\\":
+        folders.append("..\\")
+    for f in os.listdir(global_options["PC_PATH"]):
+        i = global_options["PC_PATH"] + f
+        if not i.endswith(".exe"):
+            if os.path.isfile(i):
+                files.append(f)
+            else:
+                folders.append(f)
+    for i in folders:
+        a = QListWidgetItem()
+        a.setText(i)
+        icon = QIcon()
+        _, ext = split_file_name(i)
+        icon.addFile(f":/ROOT/icons/folder.svg", QSize(), QIcon.Normal, QIcon.Off)
+        a.setIcon(icon)
+        main_window.PC_files.addItem(a)
+    for i in files:   
+        a = QListWidgetItem()
+        a.setText(i)
+        icon = QIcon()
+        _, ext = split_file_name(i)
+        if ext in supported_file_types:
+            icon.addFile(f":/ROOT/icons/{ext[1:]}.ico", QSize(), QIcon.Normal, QIcon.Off)
+        else:
+            icon.addFile(f":/ROOT/icons/txt.ico", QSize(), QIcon.Normal, QIcon.Off)
+        a.setIcon(icon)
+        main_window.PC_files.addItem(a)
     main_window.PC_files.setCurrentRow(0)
 
 def file_transport(device:str, file_name:str, out_name:str=None):
@@ -221,21 +257,26 @@ def file_transport(device:str, file_name:str, out_name:str=None):
         out_name = file_name
     if serial_manager.pyb is not None:
         if device == "PC":
+            if os.path.isdir(global_options["PC_PATH"] + file_name):
+                main_window.statusBar.showMessage("不支持传输文件夹")
+                return None
+            if not file_name.endswith(supported_file_types):
+                main_window.statusBar.showMessage("不支持传输该文件类型")
             try:
                 serial_manager.pyb.enter_raw_repl()
-                serial_manager.pyb.fs_put(file_name, out_name)
+                serial_manager.pyb.fs_put(global_options["PC_PATH"] + file_name, out_name)
                 serial_manager.fresh_files()
                 main_window.statusBar.showMessage(f"已传输{file_name}")
             except Exception as e:
                 func_for_serial_erro(str(e))
         elif device == "MCU":
             try:
-                if os.path.exists(file_name):
+                if os.path.exists(global_options["PC_PATH"] + file_name):
                     main_window.statusBar.showMessage(f"本地文件{file_name}被替换")
                 else:
                     main_window.statusBar.showMessage(f"下载文件{file_name}到本地")
                 serial_manager.pyb.enter_raw_repl()
-                serial_manager.pyb.fs_get(file_name, out_name)
+                serial_manager.pyb.fs_get(file_name, global_options["PC_PATH"] + out_name)
                 serial_manager.fresh_files()
                 fresh_PC_files()
             except Exception as e:
@@ -246,8 +287,11 @@ def file_transport(device:str, file_name:str, out_name:str=None):
 def remove_file(device:str, file_name:str):
     """删除文件"""
     if device == "PC":
-        os.remove(file_name)
-        fresh_PC_files()
+        if os.path.isdir(global_options["PC_PATH"] + file_name):
+            main_window.statusBar.showMessage(f"不支持删除文件夹")
+        else:
+            os.remove(global_options["PC_PATH"] + file_name)
+            fresh_PC_files()
     elif device == "MCU":
         if serial_manager.pyb is not None:
             try:
@@ -262,17 +306,19 @@ def remove_file(device:str, file_name:str):
 
 def open_file(device:str, file_name:str):
     """打开文件"""
-    fresh_PC_files()
     if device == "PC":
-        if file_name.endswith((".txt", ".py", ".json", 
-                                ".yaml", ".c", ".h", 
-                                ".ino", ".cpp", ".ui", 
-                                ".csv", ".bat", ".md")):
-            main_window.statusBar.showMessage(codeEditor.open_file(file_name))
+        if file_name == "..\\":
+            go_pre_folder()
+        elif os.path.isdir(global_options["PC_PATH"] + file_name):
+            open_folder(file_name)
+        elif file_name.endswith(supported_file_types):
+            main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+file_name))
+        else:
+            main_window.statusBar.showMessage("不支持打开的文件类型")
     elif device == "MCU":
         try:
             file_transport("MCU", file_name, "_"+file_name)
-            main_window.statusBar.showMessage(codeEditor.open_file("_"+file_name))
+            main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+"_"+file_name))
             file_transport("PC", "_"+file_name, file_name)
             remove_file("PC", "_"+file_name)
         except Exception as e:
@@ -280,6 +326,9 @@ def open_file(device:str, file_name:str):
 
 def rename_file(file_name):
     """弹出一个小窗口重命名文件"""
+    if os.path.isdir(global_options["PC_PATH"]+file_name):
+        main_window.statusBar.showMessage(f"不支持重命名文件夹")
+        return None
     fName, fType = split_file_name(file_name)
     redialog = QDialog()    
     shortcut = QShortcut(redialog)
@@ -299,11 +348,11 @@ def rename_file(file_name):
     gridLayout.addWidget(Lin, 0, 0, 1, 1)
     redialog.exec()
     after_name = Lin.text()
-    if not os.path.exists(after_name+fType):
-        os.rename(file_name, after_name+fType)
+    if not os.path.exists(global_options["PC_PATH"]+after_name+fType):
+        os.rename(global_options["PC_PATH"]+file_name, global_options["PC_PATH"]+after_name+fType)
         main_window.statusBar.showMessage(f"{file_name}->{after_name+fType}")
     else:
-        main_window.statusBar.showMessage(f"{after_name+fType} already exists.")
+        main_window.statusBar.showMessage(f"{global_options['PC_PATH']+after_name+fType} already exists.")
     fresh_PC_files()
 
 def split_file_name(file:str):
@@ -313,6 +362,23 @@ def split_file_name(file:str):
     for i in str_list[:-1]:
         out += i
     return out, "."+str_list[-1]
+
+def go_pre_folder():
+    """返回上一级文件夹"""
+    global global_options
+    if global_options["PC_PATH"] == ".\\":
+        return None
+    nowPath = ""
+    for i in global_options["PC_PATH"].split("\\")[:-2]:
+        nowPath += i + "\\"
+    global_options["PC_PATH"] = nowPath
+    fresh_PC_files()
+
+def open_folder(folder:str):
+    """进入文件夹"""
+    global global_options
+    global_options["PC_PATH"] += folder + "\\"
+    fresh_PC_files()
 
 def main():
     bind_methods()
