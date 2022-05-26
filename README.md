@@ -18,4 +18,4 @@
 
 (Ctrl +) (Ctrl -) 调整文本尺寸，退出自动保存
 
-![image](https://user-images.githubusercontent.com/58870893/168611599-a4675fcb-4f75-44cf-873d-972d0c0b70bb.png)
+![image](https://user-images.githubusercontent.com/58870893/170490609-81a64652-0595-4f6f-9768-852360a7561f.png)
