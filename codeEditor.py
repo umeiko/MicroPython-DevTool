@@ -5,7 +5,6 @@ from pygments import highlight
 from pygments.lexers import Python3Lexer
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import guess_lexer_for_filename
-import threading
 import rc
 
 
