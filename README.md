@@ -14,8 +14,8 @@
 
 ![image](https://user-images.githubusercontent.com/58870893/170490165-a2c9ec12-24f0-48a8-abe5-393d0184afc1.png)
 
-双击直接打开并编辑代码
+双击直接打开并编辑代码,支持代码高亮
 
 (Ctrl +) (Ctrl -) 调整文本尺寸，退出自动保存
 
-![image](https://user-images.githubusercontent.com/58870893/170490609-81a64652-0595-4f6f-9768-852360a7561f.png)
+![D1HDST}KDAEJ4H} V`~Z8E](https://user-images.githubusercontent.com/58870893/173001527-6e189802-9a08-435f-abba-303f6eebaeeb.png)
