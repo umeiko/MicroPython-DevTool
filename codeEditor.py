@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication
-from PySide6.QtWidgets import QWidget, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
+from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
 from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon
+import threading
 import rc
 
 
@@ -19,12 +20,12 @@ class QLineNumberArea(QWidget):
 class QCodeEditor(QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
-
         self.lineNumberArea = QLineNumberArea(self)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
         self.updateRequest.connect(self.updateLineNumberArea)
         self.cursorPositionChanged.connect(self.highlightCurrentLine)
         self.updateLineNumberAreaWidth(0)
+        
         self.fName = None
         sZoomIn = QShortcut(self)
         sZoomIn.setKey(u'Ctrl+=')
@@ -102,6 +103,9 @@ class QCodeEditor(QPlainTextEdit):
         if self.fName is not None:
             with open(self.fName, "w", encoding="utf-8") as f:
                 f.write(self.toPlainText())
+    
+
+
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -111,8 +115,7 @@ class Ui_Dialog(object):
         self.gridLayout = QGridLayout(Dialog)
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)        
         self.QCodeEditor = QCodeEditor(Dialog)
         self.QCodeEditor.setObjectName(u"QCodeEditor")
         self.gridLayout.addWidget(self.QCodeEditor, 0, 0, 1, 1)
@@ -123,32 +126,38 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
 
 
-def open_file(fName:str):
-    try:
-        with open(fName, "r", encoding="utf-8") as f:
-            contens = f.read()
-    except BaseException as e:
-        return str(e)
-    app = QDialog()
-    codeEditor = Ui_Dialog()
-    codeEditor.setupUi(app)
-    app.setWindowTitle(fName)
-    icon = QIcon()
-    icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.On)
-    app.setWindowIcon(icon)
-    
+def open_file(fName:str, byIDLE=False):
+    if byIDLE:
+        import idlelib.pyshell
+        import sys
+        sys.argv.clear()
+        sys.argv.append("")
+        sys.argv.append(fName)
+        idlelib.pyshell.main()
+    else:
+        try:
+            with open(fName, "r", encoding="utf-8") as f:
+                contens = f.read()
+        except BaseException as e:
+            return str(e)
+        app = QDialog()
+        codeEditor = Ui_Dialog()
+        codeEditor.setupUi(app)
+        app.setWindowTitle(fName)
+        icon = QIcon()
+        icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.On)
+        app.setWindowIcon(icon)
+        codeEditor.QCodeEditor.fName = fName
+        codeEditor.QCodeEditor.zoomIn(5)
+        codeEditor.QCodeEditor.setPlainText(contens)
+        app.exec()
+        codeEditor.QCodeEditor.saveFile()
+        return f"File \"{fName}\" saved"
 
-    codeEditor.QCodeEditor.fName = fName
-    codeEditor.QCodeEditor.zoomIn(5)
-    codeEditor.QCodeEditor.setPlainText(contens)
-    app.exec()
-    codeEditor.QCodeEditor.saveFile()
-    return f"File \"{fName}\" saved"
 
 if __name__ == '__main__':
     import sys
     from PySide6.QtWidgets import QApplication
-
     app = QApplication(sys.argv)
     codeEditor = QCodeEditor()
     codeEditor.show()

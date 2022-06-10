@@ -317,7 +317,8 @@ def open_file(device:str, file_name:str):
         elif os.path.isdir(global_options["PC_PATH"] + file_name):
             open_folder(file_name)
         elif file_name.endswith(supported_file_types):
-            main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+file_name))
+            useIDLE = True if file_name.endswith("py") else False
+            main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+file_name, useIDLE))
         else:
             main_window.statusBar.showMessage("不支持打开的文件类型")
     elif device == "MCU":
