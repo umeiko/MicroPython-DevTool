@@ -1,6 +1,11 @@
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication
-from PySide6.QtWidgets import QWidget, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
+from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
 from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon
+from pygments import highlight
+from pygments.lexers import Python3Lexer
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import guess_lexer_for_filename
+import threading
 import rc
 
 
@@ -19,12 +24,15 @@ class QLineNumberArea(QWidget):
 class QCodeEditor(QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
-
+        self.css = HtmlFormatter(style="colorful").get_style_defs('.highlight')
+        self.lex = Python3Lexer()
         self.lineNumberArea = QLineNumberArea(self)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
         self.updateRequest.connect(self.updateLineNumberArea)
         self.cursorPositionChanged.connect(self.highlightCurrentLine)
+        self.textChanged.connect(self.codeHighlight)
         self.updateLineNumberAreaWidth(0)
+        
         self.fName = None
         sZoomIn = QShortcut(self)
         sZoomIn.setKey(u'Ctrl+=')
@@ -102,6 +110,52 @@ class QCodeEditor(QPlainTextEdit):
         if self.fName is not None:
             with open(self.fName, "w", encoding="utf-8") as f:
                 f.write(self.toPlainText())
+    
+
+    def codeHighlight(self):
+        """获取正在编辑的这行, 更新该行的样式"""
+        if self.lex is not None:
+            curs = self.textCursor()
+            now_block = curs.block()
+            oldPos = curs.position()
+            self.textChanged.disconnect(self.codeHighlight)
+            out = highlight(now_block.text(), self.lex, HtmlFormatter())
+            curs.select(curs.LineUnderCursor)
+            curs.deleteChar()
+            curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
+            curs.setPosition(oldPos)
+            self.setTextCursor(curs)
+            self.textChanged.connect(self.codeHighlight)
+
+    def codeHighliteAll(self):
+        """为整个文档更新样式"""
+        if self.lex is not None:
+            code = self.toPlainText()
+            curs = self.textCursor()
+            curs.movePosition(curs.Start)
+            self.textChanged.disconnect(self.codeHighlight)
+            for k, i in enumerate(code.split('\n')):
+                now_block = curs.block()
+                content = now_block.text()
+                # print(k, content)
+                if content:
+                    out = highlight(now_block.text(), self.lex, HtmlFormatter())
+                    curs.select(curs.LineUnderCursor)
+                    curs.deleteChar()
+                    curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
+                else:
+                    curs.insertText('')
+                curs.movePosition(curs.NextBlock)
+            self.textChanged.connect(self.codeHighlight)
+    
+    def setCodeHighlite(self, state:bool):
+        """是否启用代码高亮"""
+        if state:
+            self.textChanged.connect(self.codeHighlight)
+        else:
+            self.textChanged.disconnect(self.codeHighlight)
+
+
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -111,8 +165,7 @@ class Ui_Dialog(object):
         self.gridLayout = QGridLayout(Dialog)
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)        
         self.QCodeEditor = QCodeEditor(Dialog)
         self.QCodeEditor.setObjectName(u"QCodeEditor")
         self.gridLayout.addWidget(self.QCodeEditor, 0, 0, 1, 1)
@@ -129,6 +182,7 @@ def open_file(fName:str):
             contens = f.read()
     except BaseException as e:
         return str(e)
+    
     app = QDialog()
     codeEditor = Ui_Dialog()
     codeEditor.setupUi(app)
@@ -136,11 +190,17 @@ def open_file(fName:str):
     icon = QIcon()
     icon.addFile(u":/ROOT/1.ico", QSize(), QIcon.Normal, QIcon.On)
     app.setWindowIcon(icon)
-    
-
+    if fName.split(".")[-1] != "py":
+        try:
+            codeEditor.QCodeEditor.lex = guess_lexer_for_filename(fName, "")
+        except:
+            codeEditor.QCodeEditor.lex = None
     codeEditor.QCodeEditor.fName = fName
     codeEditor.QCodeEditor.zoomIn(5)
     codeEditor.QCodeEditor.setPlainText(contens)
+    if len(contens) < 114514:
+        codeEditor.QCodeEditor.codeHighliteAll()
+
     app.exec()
     codeEditor.QCodeEditor.saveFile()
     return f"File \"{fName}\" saved"
@@ -148,7 +208,6 @@ def open_file(fName:str):
 if __name__ == '__main__':
     import sys
     from PySide6.QtWidgets import QApplication
-
     app = QApplication(sys.argv)
     codeEditor = QCodeEditor()
     codeEditor.show()
