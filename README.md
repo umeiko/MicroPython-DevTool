@@ -1,9 +1,9 @@
-# MicroPython-FileManager
+# MicroPython-DevTool
 轻量化集成，协助micropython快捷编程调试
 
 展示两端文件，方便同步
 
-![image](https://user-images.githubusercontent.com/58870893/168427782-e2524206-b539-48b0-82f3-ddf051a99a7f.png)
+![image](https://user-images.githubusercontent.com/58870893/170489860-74f274b7-83ed-415c-a5db-948518faa883.png)
 
 简单上传下载
 
@@ -12,11 +12,10 @@
 
 调试程序，支持Tab自动补全代码
 
-![image](https://user-images.githubusercontent.com/58870893/168427872-b8677c3c-ef77-4508-8585-de3f01155e30.png)
-
+![image](https://user-images.githubusercontent.com/58870893/170490165-a2c9ec12-24f0-48a8-abe5-393d0184afc1.png)
 
 双击直接打开并编辑代码
 
 (Ctrl +) (Ctrl -) 调整文本尺寸，退出自动保存
 
-![image](https://user-images.githubusercontent.com/58870893/168611599-a4675fcb-4f75-44cf-873d-972d0c0b70bb.png)
+![image](https://user-images.githubusercontent.com/58870893/170490609-81a64652-0595-4f6f-9768-852360a7561f.png)
