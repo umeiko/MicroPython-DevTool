@@ -1,4 +1,6 @@
-from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication
+import threading
+import time
+from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication, Signal
 from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
 from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon
 from pygments import highlight
@@ -21,6 +23,7 @@ class QLineNumberArea(QWidget):
 
 
 class QCodeEditor(QPlainTextEdit):
+    Line_sig = Signal()   
     def __init__(self, parent=None):
         super().__init__(parent)
         self.css = HtmlFormatter(style="colorful").get_style_defs('.highlight')
@@ -30,8 +33,12 @@ class QCodeEditor(QPlainTextEdit):
         self.updateRequest.connect(self.updateLineNumberArea)
         self.cursorPositionChanged.connect(self.highlightCurrentLine)
         self.textChanged.connect(self.codeHighlight)
+        self.Line_sig.connect(self.codeHighlightLineIter)
+        self.initCursor = self.textCursor()
         self.updateLineNumberAreaWidth(0)
-        
+        self.runningInit = True
+        self.closeLock = threading.Lock()
+
         self.fName = None
         sZoomIn = QShortcut(self)
         sZoomIn.setKey(u'Ctrl+=')
@@ -84,7 +91,6 @@ class QCodeEditor(QPlainTextEdit):
 
     def lineNumberAreaPaintEvent(self, event):
         painter = QPainter(self.lineNumberArea)
-
         painter.fillRect(event.rect(), QColor(120,120,120))
 
         block = self.firstVisibleBlock()
@@ -125,34 +131,55 @@ class QCodeEditor(QPlainTextEdit):
             curs.setPosition(oldPos)
             self.setTextCursor(curs)
             self.textChanged.connect(self.codeHighlight)
-
-    def codeHighliteAll(self):
-        """为整个文档更新样式"""
-        if self.lex is not None:
-            code = self.toPlainText()
-            curs = self.textCursor()
-            curs.movePosition(curs.Start)
-            self.textChanged.disconnect(self.codeHighlight)
-            for k, i in enumerate(code.split('\n')):
-                now_block = curs.block()
-                content = now_block.text()
-                # print(k, content)
-                if content:
-                    out = highlight(now_block.text(), self.lex, HtmlFormatter())
-                    curs.select(curs.LineUnderCursor)
-                    curs.deleteChar()
-                    curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
-                else:
-                    curs.insertText('')
-                curs.movePosition(curs.NextBlock)
-            self.textChanged.connect(self.codeHighlight)
     
+    def codeHighlightLineIter(self):
+        if self.lex is not None:
+            self.closeLock.acquire()
+            self.textChanged.disconnect(self.codeHighlight)
+            nowblock = self.initCursor.block()
+            content = nowblock.text()
+            if content:
+                if not self.initCursor.atStart():
+                    self.initCursor.insertText('\n')
+                out = highlight(content, self.lex, HtmlFormatter())
+                self.initCursor.select(self.initCursor.BlockUnderCursor)
+                self.initCursor.deleteChar()
+                self.initCursor.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
+            # else:
+            #     self.initCursor.insertText('')
+            
+            self.initCursor.movePosition(self.initCursor.NextBlock)
+            self.textChanged.connect(self.codeHighlight)
+            self.closeLock.release()
+    
+    def codeHighliteAll(self):        
+        """刷新显示界面"""
+        time.sleep(0.1)
+        self.initCursor = self.textCursor()
+        for _ in range(self.blockCount()):
+            self.Line_sig.emit()
+            time.sleep(0.001)
+            if not self.runningInit:
+                break
+        
+
+    def codeHighliteAllThread(self):
+        import threading
+        thr = threading.Thread(target=self.codeHighliteAll)
+        thr.start()
+
     def setCodeHighlite(self, state:bool):
         """是否启用代码高亮"""
         if state:
             self.textChanged.connect(self.codeHighlight)
         else:
             self.textChanged.disconnect(self.codeHighlight)
+        
+    def close(self, event):
+        """安全地退出编辑器"""
+        print("关掉")
+        self.runningInit = False
+        self.closeLock.acquire()
 
 
 
@@ -196,11 +223,13 @@ def open_file(fName:str):
             codeEditor.QCodeEditor.lex = None
     codeEditor.QCodeEditor.fName = fName
     codeEditor.QCodeEditor.zoomIn(5)
+    codeEditor.QCodeEditor.setCodeHighlite(False)
     codeEditor.QCodeEditor.setPlainText(contens)
-    if len(contens) < 114514:
-        codeEditor.QCodeEditor.codeHighliteAll()
-
+    codeEditor.QCodeEditor.setCodeHighlite(True)
+    codeEditor.QCodeEditor.codeHighliteAllThread()
+    app.closeEvent = codeEditor.QCodeEditor.close
     app.exec()
+    
     codeEditor.QCodeEditor.saveFile()
     return f"File \"{fName}\" saved"
 

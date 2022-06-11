@@ -136,4 +136,3 @@ class Ui_MainWindow(object):
         self.port_exec.setText(QCoreApplication.translate("MainWindow", u"\u547d\u4ee4\u884c\u8c03\u8bd5", None))
         self.restart_MCU.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u5355\u7247\u673a", None))
     # retranslateUi
-
