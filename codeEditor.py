@@ -32,12 +32,12 @@ class QCodeEditor(QPlainTextEdit):
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
         self.updateRequest.connect(self.updateLineNumberArea)
         self.cursorPositionChanged.connect(self.highlightCurrentLine)
-        self.textChanged.connect(self.codeHighlight)
-        self.Line_sig.connect(self.codeHighlightLineIter)
-        self.initCursor = self.textCursor()
+        self.textChanged.connect(self.codeHighlight)      # 
+        self.Line_sig.connect(self.codeHighlightLineIter) # 在线程中调用信号来控制文档更新
+        self.initCursor = self.textCursor() # 用于跌代刷新高亮格式的文本操作符 
         self.updateLineNumberAreaWidth(0)
-        self.runningInit = True
-        self.closeLock = threading.Lock()
+        self.runningInit = True           # 线程状态，文件退出前需结束线程
+        self.closeLock = threading.Lock() # 线程锁，保证文件退出时的安全
 
         self.fName = None
         sZoomIn = QShortcut(self)
@@ -92,13 +92,10 @@ class QCodeEditor(QPlainTextEdit):
     def lineNumberAreaPaintEvent(self, event):
         painter = QPainter(self.lineNumberArea)
         painter.fillRect(event.rect(), QColor(120,120,120))
-
         block = self.firstVisibleBlock()
         blockNumber = block.blockNumber()
         top = self.blockBoundingGeometry(block).translated(self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
-
-        # Just to make sure I use the right font
         height = self.fontMetrics().height()
         while block.isValid() and (top <= event.rect().bottom()):
             if block.isVisible() and (bottom >= event.rect().top()):
@@ -112,6 +109,7 @@ class QCodeEditor(QPlainTextEdit):
             blockNumber += 1
     
     def saveFile(self):
+        """保存文档"""
         if self.fName is not None:
             with open(self.fName, "w", encoding="utf-8") as f:
                 f.write(self.toPlainText())
@@ -128,11 +126,13 @@ class QCodeEditor(QPlainTextEdit):
             curs.select(curs.LineUnderCursor)
             curs.deleteChar()
             curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
+            print(f'<style type="text/css">{self.css}</style>{out}'[:-1])
             curs.setPosition(oldPos)
             self.setTextCursor(curs)
             self.textChanged.connect(self.codeHighlight)
     
     def codeHighlightLineIter(self):
+        """通过迭代刷新整个文档代码高亮的函数"""
         if self.lex is not None:
             self.closeLock.acquire()
             self.textChanged.disconnect(self.codeHighlight)
@@ -145,9 +145,6 @@ class QCodeEditor(QPlainTextEdit):
                 self.initCursor.select(self.initCursor.BlockUnderCursor)
                 self.initCursor.deleteChar()
                 self.initCursor.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
-            # else:
-            #     self.initCursor.insertText('')
-            
             self.initCursor.movePosition(self.initCursor.NextBlock)
             self.textChanged.connect(self.codeHighlight)
             self.closeLock.release()
@@ -162,8 +159,8 @@ class QCodeEditor(QPlainTextEdit):
             if not self.runningInit:
                 break
         
-
     def codeHighliteAllThread(self):
+        """启用线程在后台刷新代码高亮效果"""
         import threading
         thr = threading.Thread(target=self.codeHighliteAll)
         thr.start()
@@ -177,7 +174,6 @@ class QCodeEditor(QPlainTextEdit):
         
     def close(self, event):
         """安全地退出编辑器"""
-        print("关掉")
         self.runningInit = False
         self.closeLock.acquire()
 

@@ -9,7 +9,6 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QListWidgetIte
 import sys
 import os
 
-
 main_window = Ui_MainWindow() # 主界面
 port_dialog = Ui_Dialog()
 
@@ -35,6 +34,7 @@ supported_file_types = (".txt", ".py", ".json",
                         ".ino", ".cpp", ".ui", 
                         ".csv", ".bat", ".md")
 
+
 def init_methods():
     """启动函数"""
     fresh_PC_files()
@@ -43,6 +43,16 @@ def init_methods():
 def close_methods(*args):
     pass
 
+def func_highlightRecvText(text:str, isHtml:bool=False):
+    """高亮显示接收到的信息"""
+    if isHtml:
+        Cursor.insertHtml(text)
+    else:
+        Cursor.insertText(text)
+
+def func_highlightSendText():
+    """高亮调试窗口的信息"""
+    curs = port_dialog.sendingTextEdit.textCursor()
 
 def bind_methods():
     """为组件绑定功能"""
@@ -185,7 +195,7 @@ def func_open_port_dialog(*args):
         index = global_options["last_port"]
         port = global_options["temp_ports_list"][index-1]
         serial_thread = Serial_Core.Serial_Thread(port)
-        serial_thread.text_sig.connect(Cursor.insertText)
+        serial_thread.text_sig.connect(func_highlightRecvText)
         serial_thread.err_sig.connect(func_for_serial_erro)
         serial_thread.jump_sig.connect(func_jump_to_last_line)
         serial_thread.start()
