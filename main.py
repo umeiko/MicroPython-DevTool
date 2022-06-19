@@ -32,7 +32,8 @@ global_options = {
 supported_file_types = (".txt", ".py", ".json", 
                         ".yaml", ".c", ".h", 
                         ".ino", ".cpp", ".ui", 
-                        ".csv", ".bat", ".md")
+                        ".csv", ".bat", ".md",
+                        ".html", ".css")
 
 
 def init_methods():
@@ -250,7 +251,10 @@ def fresh_PC_files():
         a.setText(i)
         icon = QIcon()
         _, ext = split_file_name(i)
-        icon.addFile(f":/ROOT/icons/folder.svg", QSize(), QIcon.Normal, QIcon.Off)
+        if i == "..\\":
+            icon.addFile(f":/ROOT/icons/backFolder.svg", QSize(), QIcon.Normal, QIcon.Off)
+        else:
+            icon.addFile(f":/ROOT/icons/folder.svg", QSize(), QIcon.Normal, QIcon.Off)
         a.setIcon(icon)
         main_window.PC_files.addItem(a)
     for i in files:   
