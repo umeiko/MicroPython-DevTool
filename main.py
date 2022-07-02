@@ -27,7 +27,8 @@ global_options = {
     "skin_mode"      : "Classic",
     "PC_PATH"        : ".\\",
     "MCU_PATH"       :  "",
-    "Now_Focus"      : "PC"
+    "Now_Focus"      : "PC",
+    "MCU_folders"    : []
 }
 
 supported_file_types = (".txt", ".py", ".json", 
@@ -53,7 +54,7 @@ def func_highlightRecvText(text:str, isHtml:bool=False):
         Cursor.insertText(text)
 
 def func_highlightSendText():
-    """高亮调试窗口的信息"""
+    """高亮调试窗口的信息【未实现】"""
     curs = port_dialog.sendingTextEdit.textCursor()
 
 def bind_methods():
@@ -107,7 +108,7 @@ def bind_methods():
 def func_for_show_ports(*args):
     """展示串口的函数"""
     fresh_ports()
-    print(global_options)
+    # print(global_options)
     main_window.port_select.showPopup()
 
 def fresh_ports():
@@ -134,6 +135,7 @@ def fresh_ports():
 
 def func_for_select_port(*args):
     """选择连接到某个串口"""
+    global global_options
     index = args[0]
     main_window.statusBar.showMessage(f'连接{global_options["temp_ports_list"][index-1]}')
     if index > 0:
@@ -141,7 +143,7 @@ def func_for_select_port(*args):
     else:
         serial_manager.close_port()
     global_options["last_port"] = index
-    global_options["MCU_PATH"] = ""
+
     
 def create_right_menu_MCU():
     """右键菜单"""
@@ -246,24 +248,29 @@ def func_for_fresh_MCU_files(lst:list):
     """刷新单片机内的文件"""
     global global_options
     main_window.MCU_files.clear()
+    def mcuListAddItem(text:str, iconPath:str):
+        a = QListWidgetItem()
+        a.setText(text)
+        icon = QIcon()
+        icon.addFile(iconPath, QSize(), QIcon.Normal, QIcon.Off)
+        a.setIcon(icon)
+        main_window.MCU_files.addItem(a)
+    
     if global_options["MCU_PATH"]:
-        a = QListWidgetItem()
-        a.setText("..\\")
-        icon = QIcon()
-        icon.addFile(f":/ROOT/icons/backFolder.svg", QSize(), QIcon.Normal, QIcon.Off)
-        a.setIcon(icon)
-        main_window.MCU_files.addItem(a)
+        mcuListAddItem("..\\", f":/ROOT/icons/backFolder.svg")
+        
+    files_list = []
+    global_options["MCU_folders"].clear()
     for i in lst:
-        a = QListWidgetItem()
-        a.setText(i.decode())
-        icon = QIcon()
         if i.endswith(b"/"):
-            icon.addFile(f":/ROOT/icons/folder.svg", QSize(), QIcon.Normal, QIcon.Off)
+            global_options["MCU_folders"].append(i[:-1].decode())
         else:
-            _, ext = split_file_name(i.decode())
-            icon.addFile(f":/ROOT/icons/{ext[1:]}.ico", QSize(), QIcon.Normal, QIcon.Off)
-        a.setIcon(icon)
-        main_window.MCU_files.addItem(a)
+            files_list.append(i.decode())   
+    for i in global_options["MCU_folders"]:
+        mcuListAddItem(i, f":/ROOT/icons/folder.svg")    
+    for i in files_list:
+        _, ext = split_file_name(i)
+        mcuListAddItem(i, f":/ROOT/icons/{ext[1:]}.ico")
     main_window.MCU_files.setCurrentRow(0)
 
 def fresh_PC_files():
@@ -353,9 +360,9 @@ def remove_file(device:str, file_name:str):
     elif device == "MCU":
         if serial_manager.pyb is not None:
             try:
-                if file_name.endswith('/'):
+                if file_name in global_options["MCU_folders"]:
                     serial_manager.pyb.enter_raw_repl()
-                    serial_manager.pyb.fs_rmdir(global_options["MCU_PATH"]+file_name[:-1])
+                    serial_manager.pyb.fs_rmdir(global_options["MCU_PATH"]+file_name)
                 else:
                     serial_manager.pyb.enter_raw_repl()
                     serial_manager.pyb.fs_rm(global_options["MCU_PATH"]+file_name)
@@ -386,13 +393,13 @@ def open_file(device:str, file_name:str):
         try:
             if file_name == "..\\":
                 go_pre_folder("MCU") 
-            elif not file_name.endswith("/"):
+            elif not file_name in global_options["MCU_folders"]:
                 file_transport("MCU", file_name, "_"+file_name)
                 main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+"_"+file_name))
                 file_transport("PC", "_"+file_name, file_name)
                 remove_file("PC", "_"+file_name)
             else:
-                open_folder("MCU", file_name[:-1])
+                open_folder("MCU", file_name)
         except Exception as e:
             func_for_serial_erro(str(e))
 
