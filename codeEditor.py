@@ -1,8 +1,9 @@
 import threading
 import time
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication, Signal
-from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout
-from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon
+from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout, QLineEdit
+from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon, QCursor
+
 from pygments import highlight
 from pygments.lexers import Python3Lexer
 from pygments.formatters import HtmlFormatter
@@ -126,7 +127,7 @@ class QCodeEditor(QPlainTextEdit):
             curs.select(curs.LineUnderCursor)
             curs.deleteChar()
             curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
-            print(f'<style type="text/css">{self.css}</style>{out}'[:-1])
+            # print(f'<style type="text/css">{self.css}</style>{out}'[:-1])
             curs.setPosition(oldPos)
             self.setTextCursor(curs)
             self.textChanged.connect(self.codeHighlight)
@@ -228,6 +229,29 @@ def open_file(fName:str):
     
     codeEditor.QCodeEditor.saveFile()
     return f"File \"{fName}\" saved"
+
+
+def get_user_rename(default_text:str="")->str:
+    """弹出一个小窗口, 让用户输入字符, 并返回这个字符"""
+    redialog = QDialog()    
+    shortcut = QShortcut(redialog)
+    shortcut.setKey(u'Return')
+    shortcut.activated.connect(lambda: redialog.close())
+    shortcut2 = QShortcut(redialog)
+    shortcut2.setKey(u'Enter')
+    shortcut2.activated.connect(lambda: redialog.close())
+    gridLayout = QGridLayout(redialog)
+    gridLayout.setSpacing(0)
+    gridLayout.setObjectName(u"gridLayout")
+    gridLayout.setContentsMargins(0, 0, 0, 0)
+    redialog.setWindowFlag(Qt.FramelessWindowHint)
+    redialog.move(QCursor.pos())
+    Lin = QLineEdit(redialog)
+    Lin.setText(default_text)
+    gridLayout.addWidget(Lin, 0, 0, 1, 1)
+    Lin.selectAll()
+    redialog.exec()
+    return Lin.text()
 
 if __name__ == '__main__':
     import sys

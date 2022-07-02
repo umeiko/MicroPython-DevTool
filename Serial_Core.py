@@ -8,10 +8,11 @@ from PySide6.QtCore import Signal, QObject
 css = '<style type="text/css"> .r { color: #FF0000 } .g { color: #00FF00}</style>'
 
 def deal_files(input_bytes:bytes)->list:
+    """将读取到的单片机文件信息转换为列表"""
     files = input_bytes.split(b"\n")
     out = []
     for i in files:
-        if i :
+        if i:
             out.append(i.split()[1])
     return out
 
@@ -100,13 +101,13 @@ class Serial_Manager(QObject):
             self.port_erro_signal.emit(str(e))
         self.fresh_signal.emit(files)
 
-    def fresh_files(self):
+    def fresh_files(self, path:str=""):
         """刷新串口内容的内部文件"""
         files = []
         try:
             if self.pyb is not None:
                 self.pyb.enter_raw_repl()
-                files = deal_files(self.pyb.fs_ls("", False))
+                files = deal_files(self.pyb.fs_ls(path, False))
                 self.pyb.exit_raw_repl()
         except Exception as e:
             self.port_erro_signal.emit(str(e))
