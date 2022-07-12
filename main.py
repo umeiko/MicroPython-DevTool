@@ -331,17 +331,20 @@ def file_transport(device:str, file_name:str, out_name:str=None):
             except Exception as e:
                 func_for_serial_erro(str(e))
         elif device == "MCU":
-            try:
-                if os.path.exists(global_options["PC_PATH"] + out_name):
-                    main_window.statusBar.showMessage(f"本地文件{out_name}被替换")
-                else:
-                    main_window.statusBar.showMessage(f"下载文件{out_name}到本地")
-                serial_manager.pyb.enter_raw_repl()
-                serial_manager.pyb.fs_get(global_options["MCU_PATH"]+file_name, global_options["PC_PATH"] + out_name)
-                serial_manager.fresh_files(global_options["MCU_PATH"])
-                fresh_PC_files()
-            except Exception as e:
-                func_for_serial_erro(str(e))
+            if file_name in global_options["MCU_folders"]:
+                main_window.statusBar.showMessage(f"不支持下载文件夹: {file_name}")
+            else:
+                try:
+                    if os.path.exists(global_options["PC_PATH"] + out_name):
+                        main_window.statusBar.showMessage(f"本地文件{out_name}被替换")
+                    else:
+                        main_window.statusBar.showMessage(f"下载文件{out_name}到本地")
+                    serial_manager.pyb.enter_raw_repl()
+                    serial_manager.pyb.fs_get(global_options["MCU_PATH"]+file_name, global_options["PC_PATH"] + out_name)
+                    serial_manager.fresh_files(global_options["MCU_PATH"])
+                    fresh_PC_files()
+                except Exception as e:
+                    func_for_serial_erro(str(e))
     else:
         main_window.statusBar.showMessage("未连接！传输无效")
 
@@ -409,7 +412,7 @@ def rename_file(file_name):
         main_window.statusBar.showMessage(f"不支持重命名文件夹")
         return None
     fName, fType = split_file_name(file_name)
-    after_name = codeEditor.get_user_rename(fName)
+    after_name = codeEditor.get_user_rename(fName, "重命名: ")
     if not os.path.exists(global_options["PC_PATH"]+after_name+fType):
         os.rename(global_options["PC_PATH"]+file_name, global_options["PC_PATH"]+after_name+fType)
         main_window.statusBar.showMessage(f"{file_name}->{after_name+fType}")
@@ -457,7 +460,7 @@ def open_folder(device="PC", folder:str=""):
 def new_folder(device="PC"):
     """新建文件夹"""
     global global_options
-    folder_name=codeEditor.get_user_rename()
+    folder_name=codeEditor.get_user_rename("","新建文件夹: ")
     if folder_name:
         if device == "PC":
             if not os.path.isdir(global_options["PC_PATH"] + folder_name):
@@ -479,7 +482,7 @@ def new_folder(device="PC"):
 def new_file():
     """新建一个代码文件"""
     global global_options
-    file_name=codeEditor.get_user_rename()+".py"
+    file_name=codeEditor.get_user_rename("","新建代码文件: ")+".py"
     if not os.path.exists(global_options["PC_PATH"] + file_name):
         with open(global_options["PC_PATH"] + file_name, "w", encoding="utf-8") as f:
             f.write("# code here\n")

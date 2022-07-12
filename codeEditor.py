@@ -1,7 +1,7 @@
 import threading
 import time
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication, Signal
-from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout, QLineEdit
+from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout, QLineEdit, QLabel
 from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon, QCursor
 
 from pygments import highlight
@@ -231,7 +231,7 @@ def open_file(fName:str):
     return f"File \"{fName}\" saved"
 
 
-def get_user_rename(default_text:str="")->str:
+def get_user_rename(default_text:str="",hint_text:str="")->str:
     """弹出一个小窗口, 让用户输入字符, 并返回这个字符"""
     redialog = QDialog()    
     shortcut = QShortcut(redialog)
@@ -248,7 +248,13 @@ def get_user_rename(default_text:str="")->str:
     redialog.move(QCursor.pos())
     Lin = QLineEdit(redialog)
     Lin.setText(default_text)
-    gridLayout.addWidget(Lin, 0, 0, 1, 1)
+    if hint_text: 
+        Label = QLabel(redialog)
+        Label.setText(hint_text)
+        gridLayout.addWidget(Label, 0, 0, 1, 1)
+        gridLayout.addWidget(Lin, 1, 0, 1, 1)
+    else:
+        gridLayout.addWidget(Lin, 0, 0, 1, 1)
     Lin.selectAll()
     redialog.exec()
     return Lin.text()
