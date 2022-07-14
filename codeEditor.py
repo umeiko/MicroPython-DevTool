@@ -243,7 +243,7 @@ def get_user_rename(default_text:str="",hint_text:str="")->str:
     gridLayout = QGridLayout(redialog)
     gridLayout.setSpacing(0)
     gridLayout.setObjectName(u"gridLayout")
-    gridLayout.setContentsMargins(0, 0, 0, 0)
+    gridLayout.setContentsMargins(1, 1, 1, 1)
     redialog.setWindowFlag(Qt.FramelessWindowHint)
     redialog.move(QCursor.pos())
     Lin = QLineEdit(redialog)
