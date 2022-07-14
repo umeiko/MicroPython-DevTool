@@ -1,3 +1,6 @@
+"""
+本模块提供了一个代码编辑器, 刷新代码高亮格式的线程, 以及简易的用户单行文本交互窗口。
+"""
 import threading
 import time
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication, Signal

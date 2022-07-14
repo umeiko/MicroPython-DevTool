@@ -1,3 +1,6 @@
+"""
+本模块包含管理MicroPython设备的 QObject 及监听串口信息的线程
+"""
 import threading
 import pyboard
 import serial
@@ -74,7 +77,8 @@ class Serial_Thread(threading.Thread, QObject):
         print("串口打印线程被终止")
 
 class Serial_Manager(QObject):
-    pyb = None
+    """MicroPython设备管理器"""
+    pyb:pyboard.Pyboard = None
     port_erro_signal = Signal(str)
     fresh_signal     = Signal(list)
     def __init__(self) -> None:

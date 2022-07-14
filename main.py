@@ -1,7 +1,7 @@
 from mainWindow import Ui_MainWindow
 from portWindow import Ui_Dialog
-import codeEditor
-import Serial_Core
+import code_editor
+import serial_core
 
 from PySide6.QtGui import QIcon, QShortcut, QAction,QCursor
 from PySide6.QtCore import Qt, QSize
@@ -17,7 +17,7 @@ w_p = QDialog()
 w = QMainWindow()
 main_window.setupUi(w)
 port_dialog.setupUi(w_p)
-serial_manager = Serial_Core.Serial_Manager()
+serial_manager = serial_core.Serial_Manager()
 Cursor = port_dialog.recv_Text.textCursor()
 serial_thread = None
 
@@ -221,7 +221,7 @@ def func_open_port_dialog(*args):
         serial_manager.pyb.close()
         index = global_options["last_port"]
         port = global_options["temp_ports_list"][index-1]
-        serial_thread = Serial_Core.Serial_Thread(port)
+        serial_thread = serial_core.Serial_Thread(port)
         serial_thread.text_sig.connect(func_highlightRecvText)
         serial_thread.err_sig.connect(func_for_serial_erro)
         serial_thread.jump_sig.connect(func_jump_to_last_line)
@@ -388,7 +388,7 @@ def open_file(device:str, file_name:str):
         elif os.path.isdir(global_options["PC_PATH"] + file_name):
             open_folder(folder=file_name)
         elif file_name.endswith(supported_file_types):
-            main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+file_name))
+            main_window.statusBar.showMessage(code_editor.open_file(global_options["PC_PATH"]+file_name))
         else:
             main_window.statusBar.showMessage("不支持打开的文件类型")
             fresh_PC_files()
@@ -398,7 +398,7 @@ def open_file(device:str, file_name:str):
                 go_pre_folder("MCU") 
             elif not file_name in global_options["MCU_folders"]:
                 file_transport("MCU", file_name, "_"+file_name)
-                main_window.statusBar.showMessage(codeEditor.open_file(global_options["PC_PATH"]+"_"+file_name))
+                main_window.statusBar.showMessage(code_editor.open_file(global_options["PC_PATH"]+"_"+file_name))
                 file_transport("PC", "_"+file_name, file_name)
                 remove_file("PC", "_"+file_name)
             else:
@@ -412,7 +412,7 @@ def rename_file(file_name):
         main_window.statusBar.showMessage(f"不支持重命名文件夹")
         return None
     fName, fType = split_file_name(file_name)
-    after_name = codeEditor.get_user_rename(fName, "重命名: ")
+    after_name = code_editor.get_user_rename(fName, "重命名: ")
     if not os.path.exists(global_options["PC_PATH"]+after_name+fType):
         os.rename(global_options["PC_PATH"]+file_name, global_options["PC_PATH"]+after_name+fType)
         main_window.statusBar.showMessage(f"{file_name}->{after_name+fType}")
@@ -460,7 +460,7 @@ def open_folder(device="PC", folder:str=""):
 def new_folder(device="PC"):
     """新建文件夹"""
     global global_options
-    folder_name=codeEditor.get_user_rename("","新建文件夹: ")
+    folder_name=code_editor.get_user_rename("","新建文件夹: ")
     if folder_name:
         if device == "PC":
             if not os.path.isdir(global_options["PC_PATH"] + folder_name):
@@ -482,7 +482,7 @@ def new_folder(device="PC"):
 def new_file():
     """新建一个代码文件"""
     global global_options
-    file_name=codeEditor.get_user_rename("","新建代码文件: ")+".py"
+    file_name=code_editor.get_user_rename("","新建代码文件: ")+".py"
     if not os.path.exists(global_options["PC_PATH"] + file_name):
         with open(global_options["PC_PATH"] + file_name, "w", encoding="utf-8") as f:
             f.write("# code here\n")
