@@ -27,13 +27,7 @@
 
 ## 主要特性
 &nbsp;&nbsp;&nbsp;&nbsp;主界面会列出当前运行目录与MicroPython单片机内的文件及目录，右击这些文件可以对文件进行操作。
-
-![image](https://user-images.githubusercontent.com/58870893/170489860-74f274b7-83ed-415c-a5db-948518faa883.png)
-
-简单上传下载
-
-![image](https://user-images.githubusercontent.com/58870893/168427809-52abb129-84a6-41ab-8411-997472b20d69.png)
-![image](https://user-images.githubusercontent.com/58870893/168427818-9e27c9e7-6493-4735-9579-ef517c66eac8.png)
+![image](https://user-images.githubusercontent.com/58870893/179017048-b2f63cd5-69e5-47af-a812-e5b94351e491.png)
 
 调试程序，支持Tab自动补全代码
 
