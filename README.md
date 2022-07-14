@@ -41,5 +41,5 @@
 直接双击文件夹会进入目录，直接双击文件则会调出代码编辑器，可以直接编辑文件，退出时会自动保存。
 
 （ 【Ctrl +】 【Ctrl -】 调整文本尺寸 ）
+![image](https://user-images.githubusercontent.com/58870893/179019896-c589bb2c-55d6-4f62-a511-b11209acb763.png)
 
-![D1HDST}KDAEJ4H} V`~Z8E](https://user-images.githubusercontent.com/58870893/173001527-6e189802-9a08-435f-abba-303f6eebaeeb.png)
