@@ -27,14 +27,19 @@
 
 ## 主要特性
 &nbsp;&nbsp;&nbsp;&nbsp;主界面会列出当前运行目录与MicroPython单片机内的文件及目录，右击这些文件可以对文件进行操作。
+
+
 ![image](https://user-images.githubusercontent.com/58870893/179017048-b2f63cd5-69e5-47af-a812-e5b94351e491.png)
 
-调试程序，支持Tab自动补全代码
+
+在连接到 MicroPython 单片机的情况下，可调出调试界面，实时通过串口界面对设备进行repl调试。
+
+（ 支持 Tab【代码补全】、Ctrl+B【停止当前程序运行】）
 
 ![image](https://user-images.githubusercontent.com/58870893/170490165-a2c9ec12-24f0-48a8-abe5-393d0184afc1.png)
 
-双击直接打开并编辑代码,支持代码高亮
+直接双击文件夹会进入目录，直接双击文件则会调出代码编辑器，可以直接编辑文件，退出时会自动保存。
 
-(Ctrl +) (Ctrl -) 调整文本尺寸，退出自动保存
+（ 【Ctrl +】 【Ctrl -】 调整文本尺寸 ）
 
 ![D1HDST}KDAEJ4H} V`~Z8E](https://user-images.githubusercontent.com/58870893/173001527-6e189802-9a08-435f-abba-303f6eebaeeb.png)
