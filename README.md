@@ -2,7 +2,7 @@
 &nbsp;&nbsp;轻量化集成，协助MicroPython快捷编程调试
 
 
-![image](https://user-images.githubusercontent.com/58870893/179133404-7533f443-168e-49de-ae64-a91c0731792a.png)
+![image](https://user-images.githubusercontent.com/58870893/179134987-adce9ce5-733b-4643-835a-aadbc13acefd.png)
 
 
 ## 项目简介
