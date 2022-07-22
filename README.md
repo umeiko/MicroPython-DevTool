@@ -56,3 +56,5 @@
 2. 能够看见端口，但无法选择这个端口
     - 确认这个端口 就是 单片机所对应的端口（可在设备管理器中拔插单片机确认）
     - 确认单片机中烧录了MicroPython固件 （[烧录工具](https://github.com/umeiko/ESPTOOL-GUI), [固件下载](https://micropython.org/download/)）
+3. 已知问题
+    - 合宙C3无串口芯片版，通讯时与pySerial模块有兼容性问题，会导致程序卡死
