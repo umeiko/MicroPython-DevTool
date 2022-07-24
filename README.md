@@ -1,8 +1,12 @@
 # MicroPython-DevTool
 &nbsp;&nbsp;轻量化集成，协助MicroPython快捷编程调试
 
+
+![image](https://user-images.githubusercontent.com/58870893/179134987-adce9ce5-733b-4643-835a-aadbc13acefd.png)
+
+
 ## 项目简介
-&nbsp;&nbsp;本项目基于 MicroPython 官网提供的SDK，提供了功能完善的 MicroPython 设备的文件管理，代码编辑，在线调试用户界面。<br>
+&nbsp;&nbsp;本项目基于 [MicroPython](https://micropython.org/) 官网提供的SDK，提供了功能完善的 MicroPython 设备的文件管理，代码编辑，在线调试用户界面。<br>
 
 1. 用户界面基于PySide6完成，提供了界面的designer源项目，方便用户界面的开发。
 2. 基于pySerial实现串口调试通讯功能，兼容多种操作系统。
@@ -52,3 +56,5 @@
 2. 能够看见端口，但无法选择这个端口
     - 确认这个端口 就是 单片机所对应的端口（可在设备管理器中拔插单片机确认）
     - 确认单片机中烧录了MicroPython固件 （[烧录工具](https://github.com/umeiko/ESPTOOL-GUI), [固件下载](https://micropython.org/download/)）
+3. 已知问题
+    - 合宙C3无串口芯片版，通讯时与pySerial模块有兼容性问题，会导致程序卡死
