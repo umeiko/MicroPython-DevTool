@@ -524,12 +524,11 @@ def folder_recursion_copy(device):
                 new_folder("MCU", i)
                 open_folder("PC", i)
                 open_folder("MCU", i)
-                folder_recursion_copy()
+                folder_recursion_copy(device)
     elif device == "MCU":
         serial_manager.pyb.enter_raw_repl()
         files = serial_core.deal_files(serial_manager.pyb.fs_ls(global_options["MCU_PATH"], False))
         for i in files:
-            print(i)
             i = i.decode()
             if not i.endswith('/'):
                 file_transport("MCU", i)
