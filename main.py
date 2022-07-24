@@ -1,3 +1,4 @@
+from genericpath import isfile
 from mainWindow import Ui_MainWindow
 from portWindow import Ui_Dialog
 import code_editor
@@ -35,7 +36,7 @@ supported_file_types = (".txt", ".py", ".json",
                         ".yaml", ".c", ".h", 
                         ".ino", ".cpp", ".ui", 
                         ".csv", ".bat", ".md",
-                        ".html", ".css")
+                        ".html", ".css",".bmp")
 
 
 def init_methods():
@@ -319,7 +320,8 @@ def file_transport(device:str, file_name:str, out_name:str=None):
     if serial_manager.pyb is not None:
         if device == "PC":
             if os.path.isdir(global_options["PC_PATH"] + file_name):
-                main_window.statusBar.showMessage("不支持传输文件夹")
+                main_window.statusBar.showMessage(f"上传文件夹{file_name}中")
+                folder_copy(device, file_name)
                 return None
             if not file_name.endswith(supported_file_types):
                 main_window.statusBar.showMessage("不支持传输该文件类型")
@@ -332,7 +334,8 @@ def file_transport(device:str, file_name:str, out_name:str=None):
                 func_for_serial_erro(str(e))
         elif device == "MCU":
             if file_name in global_options["MCU_folders"]:
-                main_window.statusBar.showMessage(f"不支持下载文件夹: {file_name}")
+                main_window.statusBar.showMessage(f"下载文件夹: {file_name}")
+                folder_copy(device, file_name)
             else:
                 try:
                     if os.path.exists(global_options["PC_PATH"] + out_name):
@@ -457,27 +460,35 @@ def open_folder(device="PC", folder:str=""):
         global_options["MCU_PATH"] += folder + "/"
         serial_manager.fresh_files(global_options["MCU_PATH"])
 
-def new_folder(device="PC"):
+
+def new_folder(device="PC", folder_name:str=None)->bool:
     """新建文件夹"""
     global global_options
-    folder_name=code_editor.get_user_rename("","新建文件夹: ")
+    if folder_name is None:
+        folder_name=code_editor.get_user_rename("","新建文件夹: ")
     if folder_name:
         if device == "PC":
             if not os.path.isdir(global_options["PC_PATH"] + folder_name):
                 os.mkdir(global_options["PC_PATH"] + '\\' + folder_name)
+                fresh_PC_files()
+                return True
             else:
                 main_window.statusBar.showMessage(f"{global_options['PC_PATH']+folder_name} already exists.")
-            fresh_PC_files()
+                return False
+            
         elif device == "MCU":
             try:
                 serial_manager.pyb.enter_raw_repl()
                 serial_manager.pyb.fs_mkdir(global_options["MCU_PATH"]+folder_name)
                 serial_manager.fresh_files(global_options["MCU_PATH"])
+                return True
             except Exception as e:
                 if len(e.args) > 1:
                     main_window.statusBar.showMessage(f"尝试建立非法的文件夹")
                 else:
                     func_for_serial_erro(str(e))
+                return False
+
 
 def new_file():
     """新建一个代码文件"""
@@ -489,6 +500,48 @@ def new_file():
         fresh_PC_files()
     else:
         main_window.statusBar.showMessage(f"文件 {file_name} 已存在")
+
+
+def folder_copy(device:str, folder_name:str):
+    '''将整个文件夹复制'''
+    if device == "PC":
+        f_to = "MCU"
+    elif device == "MCU":
+        f_to ="PC"
+    if new_folder(f_to, folder_name):
+        open_folder("PC", folder_name)
+        open_folder("MCU", folder_name)
+        folder_recursion_copy(device)
+
+
+def folder_recursion_copy(device):
+    """递归地复制所有的文件及路径"""
+    if device == "PC":
+        for i in os.listdir(global_options["PC_PATH"]):
+            if os.path.isfile(f"{global_options['PC_PATH']}\\{i}"):
+                file_transport("PC", i)
+            else:
+                new_folder("MCU", i)
+                open_folder("PC", i)
+                open_folder("MCU", i)
+                folder_recursion_copy()
+    elif device == "MCU":
+        serial_manager.pyb.enter_raw_repl()
+        files = serial_core.deal_files(serial_manager.pyb.fs_ls(global_options["MCU_PATH"], False))
+        for i in files:
+            print(i)
+            i = i.decode()
+            if not i.endswith('/'):
+                file_transport("MCU", i)
+            else:
+                i = i[:-1]
+                new_folder("PC", i)
+                open_folder("PC", i)
+                open_folder("MCU", i)
+                folder_recursion_copy(device)
+    go_pre_folder("PC")
+    go_pre_folder("MCU")
+
 
 def main():
     bind_methods()
