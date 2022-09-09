@@ -28,20 +28,23 @@ class QLineNumberArea(QWidget):
 
 class QCodeEditor(QPlainTextEdit):
     Line_sig = Signal()   
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, lex=Python3Lexer()):
         super().__init__(parent)
         self.css = HtmlFormatter(style="colorful").get_style_defs('.highlight')
-        self.lex = Python3Lexer()
+        self.lex = lex
+        self.now_editing_line = 0
+        self.setUndoRedoEnabled(False)
         self.lineNumberArea = QLineNumberArea(self)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
         self.updateRequest.connect(self.updateLineNumberArea)
         self.cursorPositionChanged.connect(self.highlightCurrentLine)
         self.textChanged.connect(self.codeHighlight)      # 
         self.Line_sig.connect(self.codeHighlightLineIter) # 在线程中调用信号来控制文档更新
-        self.initCursor = self.textCursor() # 用于跌代刷新高亮格式的文本操作符 
+        self.initCursor = self.textCursor() # 用于迭代刷新高亮格式的文本操作符 
         self.updateLineNumberAreaWidth(0)
-        self.runningInit = True           # 线程状态，文件退出前需结束线程
-        self.closeLock = threading.Lock() # 线程锁，保证文件退出时的安全
+        self.setTabStopDistance(40)
+        self.runningInit = True             # 线程状态，文件退出前需结束线程
+        self.closeLock = threading.Lock()   # 线程锁，保证文件退出时的安全
 
         self.fName = None
         sZoomIn = QShortcut(self)
@@ -50,6 +53,7 @@ class QCodeEditor(QPlainTextEdit):
         sZoomOut = QShortcut(self)
         sZoomOut.setKey(u'Ctrl+-')
         sZoomOut.activated.connect(self.zoomOut)
+        
         
         sSave = QShortcut(self)
         sSave.setKey(u'Ctrl+s')
@@ -121,6 +125,7 @@ class QCodeEditor(QPlainTextEdit):
 
     def codeHighlight(self):
         """获取正在编辑的这行, 更新该行的样式"""
+        
         if self.lex is not None:
             curs = self.textCursor()
             now_block = curs.block()
@@ -128,12 +133,27 @@ class QCodeEditor(QPlainTextEdit):
             self.textChanged.disconnect(self.codeHighlight)
             out = highlight(now_block.text(), self.lex, HtmlFormatter())
             curs.select(curs.LineUnderCursor)
-            curs.deleteChar()
-            curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
-            # print(f'<style type="text/css">{self.css}</style>{out}'[:-1])
+            print(f"-{now_block.text()}-{curs.selectedText()}-{out}\\")
+            if now_block.text() and (curs.selectedText() == now_block.text()):
+                curs.deleteChar()
+                curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
+            elif self.now_editing_line != now_block.blockNumber():
+                pre_block = now_block.previous()
+                k = 0
+                for i in pre_block.text():
+                    if i not in (" ", "\t"):
+                        break
+                    k += 1
+                indented_blocks = pre_block.text()[:k]
+                if pre_block.text().endswith(":"):
+                    indented_blocks += "\t"
+                out = indented_blocks
+                oldPos += len(indented_blocks)
+                curs.insertText(out)
             curs.setPosition(oldPos)
             self.setTextCursor(curs)
             self.textChanged.connect(self.codeHighlight)
+            self.now_editing_line = now_block.blockNumber()
     
     def codeHighlightLineIter(self):
         """通过迭代刷新整个文档代码高亮的函数"""
