@@ -90,14 +90,18 @@ class QCodeEditor(QPlainTextEdit):
             curs.setPosition(start_index)
             curs.movePosition(curs.StartOfBlock)
             select_start = curs.position()
+            self.textChanged.disconnect(self.codeHighlight)
             curs.insertText("\t")
+            self.textChanged.connect(self.codeHighlight)
             self.codeHighlight(curs)
             temp = 1
             for k, i in enumerate(original_texts):
                 if i == "\n":
                     curs.setPosition(start_index+temp+k+1)
                     temp += 1
+                    self.textChanged.disconnect(self.codeHighlight)
                     curs.insertText("\t")
+                    self.textChanged.connect(self.codeHighlight)
                     self.codeHighlight(curs)
             # 选中多行
             curs.setPosition(select_start, curs.MoveAnchor)
@@ -125,9 +129,10 @@ class QCodeEditor(QPlainTextEdit):
         for k, i in enumerate(original_texts):
             if atLineStart and i == "\t":
                 curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                self.textChanged.disconnect(self.codeHighlight)
                 curs.deleteChar()
+                self.textChanged.connect(self.codeHighlight)
                 temp -= 1
-                self.codeHighlight(curs)
             if i == "\n":
                 atLineStart = True
             else:
@@ -158,28 +163,31 @@ class QCodeEditor(QPlainTextEdit):
             if not i.startswith("#"):
                 add_comment = True
                 break
+        atLineStart = True
         if add_comment:
-            curs.movePosition(curs.StartOfBlock)
-            curs.insertText("#")
-            self.codeHighlight(curs)
-            temp = start_index + 1
+            temp = 0
             for k, i in enumerate(original_texts):
-                if i == "\n":
-                    curs.setPosition(start_index+temp+k+1)
-                    temp += 1
+                if atLineStart:
+                    curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                    self.textChanged.disconnect(self.codeHighlight)
                     curs.insertText("#")
+                    self.textChanged.connect(self.codeHighlight)
                     self.codeHighlight(curs)
+                    temp += 1
+                atLineStart = True if i == "\n" else False
+
         else:
-            curs.movePosition(curs.StartOfBlock)
-            curs.deleteChar()
-            self.codeHighlight(curs)
-            temp = start_index - 1
+            temp = 0
             for k, i in enumerate(original_texts):
-                if i == "\n":
-                    curs.setPosition(start_index+temp+k+1)
+                if atLineStart:
+                    curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                    self.textChanged.disconnect(self.codeHighlight)
                     curs.deleteChar()
-                    temp -= 1
+                    self.textChanged.connect(self.codeHighlight)
                     self.codeHighlight(curs)
+                    temp -= 1
+                atLineStart = True if i == "\n" else False
+
         # 选中多行
         curs.setPosition(start_index, curs.MoveAnchor)
         curs.setPosition(end_index+temp, curs.KeepAnchor)
