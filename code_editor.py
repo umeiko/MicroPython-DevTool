@@ -5,8 +5,7 @@ import threading
 import time
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication, Signal
 from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout, QLineEdit, QLabel
-from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon, QCursor
-
+from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon, QCursor, QKeyEvent
 from pygments import highlight
 from pygments.lexers import Python3Lexer
 from pygments.formatters import HtmlFormatter
@@ -54,10 +53,137 @@ class QCodeEditor(QPlainTextEdit):
         sZoomOut.setKey(u'Ctrl+-')
         sZoomOut.activated.connect(self.zoomOut)
         
+        sDelTab = QShortcut(self)
+        sDelTab.setKey(u'Shift+Tab')
+        sDelTab.activated.connect(self.deTabMultiLine)
+
+        sComment = QShortcut(self)
+        sComment.setKey(u'Ctrl+/')
+        sComment.activated.connect(self.commentMultiLine)
         
         sSave = QShortcut(self)
         sSave.setKey(u'Ctrl+s')
         sSave.activated.connect(self.saveFile)
+
+        # 重载键盘事件
+        self.oldKeyEvent = self.keyPressEvent
+        self.keyPressEvent = self.newKeyEvents
+    
+    def newKeyEvents(self, k:QKeyEvent):
+        """重载键盘事件, 改写某些输入按键的功能"""
+        # print(k.keyCombination().key())
+        if k.keyCombination().key() == Qt.Key.Key_Tab:
+            self.tabMultiLine()
+        else:
+            self.oldKeyEvent(k)
+
+    def tabMultiLine(self):
+        """一次性给多行添加缩进"""
+        curs = self.textCursor()
+        start_index = curs.selectionStart()
+        end_index = curs.selectionEnd()
+        if start_index != end_index:
+            original_texts = curs.selection().toPlainText()
+            curs.setPosition(end_index)
+            curs.movePosition(curs.EndOfBlock)
+            end_index = curs.position()
+            curs.setPosition(start_index)
+            curs.movePosition(curs.StartOfBlock)
+            select_start = curs.position()
+            curs.insertText("\t")
+            self.codeHighlight(curs)
+            temp = 1
+            for k, i in enumerate(original_texts):
+                if i == "\n":
+                    curs.setPosition(start_index+temp+k+1)
+                    temp += 1
+                    curs.insertText("\t")
+                    self.codeHighlight(curs)
+            # 选中多行
+            curs.setPosition(select_start, curs.MoveAnchor)
+            curs.setPosition(end_index+temp, curs.KeepAnchor)
+            self.setTextCursor(curs)
+        else:
+            curs.insertText("\t")
+
+    def deTabMultiLine(self):
+        """一次性取消多行的缩进"""
+        curs = self.textCursor()
+        start_index = curs.selectionStart()
+        end_index = curs.selectionEnd()
+        curs.setPosition(end_index)
+        curs.movePosition(curs.EndOfBlock)
+        end_index = curs.position()
+        curs.setPosition(start_index)
+        curs.movePosition(curs.StartOfLine)
+        start_index = curs.position()
+        curs.setPosition(start_index, curs.MoveAnchor)
+        curs.setPosition(end_index, curs.KeepAnchor)
+        original_texts = curs.selection().toPlainText()
+        atLineStart = True
+        temp = 0
+        for k, i in enumerate(original_texts):
+            if atLineStart and i == "\t":
+                curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                curs.deleteChar()
+                temp -= 1
+                self.codeHighlight(curs)
+            if i == "\n":
+                atLineStart = True
+            else:
+                atLineStart = False
+        # 选中多行
+        curs.setPosition(start_index, curs.MoveAnchor)
+        curs.setPosition(end_index+temp, curs.KeepAnchor)
+        self.setTextCursor(curs)
+
+    def commentMultiLine(self):
+        """一次性注释多行"""
+        curs = self.textCursor()
+        start_index = curs.selectionStart()
+        end_index = curs.selectionEnd()
+        curs.setPosition(end_index)
+        curs.movePosition(curs.EndOfBlock)
+        end_index = curs.position()
+        curs.setPosition(start_index)
+        curs.movePosition(curs.StartOfLine)
+        start_index = curs.position()
+        curs.setPosition(start_index, curs.MoveAnchor)
+        curs.setPosition(end_index, curs.KeepAnchor)
+        original_texts = curs.selection().toPlainText()
+        curs.setPosition(start_index, curs.MoveAnchor)
+        # 判断是加注释还是消除注释        
+        add_comment = False
+        for i in original_texts.splitlines():
+            if not i.startswith("#"):
+                add_comment = True
+                break
+        if add_comment:
+            curs.movePosition(curs.StartOfBlock)
+            curs.insertText("#")
+            self.codeHighlight(curs)
+            temp = start_index + 1
+            for k, i in enumerate(original_texts):
+                if i == "\n":
+                    curs.setPosition(start_index+temp+k+1)
+                    temp += 1
+                    curs.insertText("#")
+                    self.codeHighlight(curs)
+        else:
+            curs.movePosition(curs.StartOfBlock)
+            curs.deleteChar()
+            self.codeHighlight(curs)
+            temp = start_index - 1
+            for k, i in enumerate(original_texts):
+                if i == "\n":
+                    curs.setPosition(start_index+temp+k+1)
+                    curs.deleteChar()
+                    temp -= 1
+                    self.codeHighlight(curs)
+        # 选中多行
+        curs.setPosition(start_index, curs.MoveAnchor)
+        curs.setPosition(end_index+temp, curs.KeepAnchor)
+        self.setTextCursor(curs)
         
 
     def lineNumberAreaWidth(self):
@@ -110,7 +236,6 @@ class QCodeEditor(QPlainTextEdit):
                 number = str(blockNumber + 1)
                 painter.setPen(Qt.black)
                 painter.drawText(0, top, self.lineNumberArea.width(), height, Qt.AlignRight, number)
-
             block = block.next()
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
@@ -121,19 +246,20 @@ class QCodeEditor(QPlainTextEdit):
         if self.fName is not None:
             with open(self.fName, "w", encoding="utf-8") as f:
                 f.write(self.toPlainText())
-    
 
-    def codeHighlight(self):
+    def codeHighlight(self, curser=None):
         """获取正在编辑的这行, 更新该行的样式"""
-        
         if self.lex is not None:
-            curs = self.textCursor()
+            if curser is None:
+                curs = self.textCursor()
+            else:
+                curs = curser
             now_block = curs.block()
             oldPos = curs.position()
             self.textChanged.disconnect(self.codeHighlight)
             out = highlight(now_block.text(), self.lex, HtmlFormatter())
             curs.select(curs.LineUnderCursor)
-            print(f"-{now_block.text()}-{curs.selectedText()}-{out}\\")
+            # print(f"-{now_block.text()}-{curs.selectedText()}-{out}\\")
             if now_block.text() and (curs.selectedText() == now_block.text()):
                 curs.deleteChar()
                 curs.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
