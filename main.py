@@ -1,14 +1,15 @@
-from genericpath import isfile
+
 from mainWindow import Ui_MainWindow
 from portWindow import Ui_Dialog
 import code_editor
 import serial_core
-
-from PySide6.QtGui import QIcon, QShortcut, QAction,QCursor
+import PySide6
+from PySide6.QtGui import QIcon, QShortcut, QAction,QCursor,QDragEnterEvent,QDragMoveEvent,QDropEvent
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QListWidgetItem, QMenu, QLabel, QLineEdit, QGridLayout
 import sys
 import os
+import shutil
 
 main_window = Ui_MainWindow() # 主界面
 port_dialog = Ui_Dialog()
@@ -72,6 +73,16 @@ def bind_methods():
     main_window.PC_files.itemDoubleClicked.connect(lambda x: open_file("PC", x.text()))
     main_window.restart_MCU.clicked.connect(serial_manager.reboot)
     main_window.port_exec.clicked.connect(func_open_port_dialog)
+    
+    main_window.PC_files.setAcceptDrops(True) 
+    main_window.PC_files.dragEnterEvent = dragEnterEvent
+    main_window.PC_files.dragMoveEvent = dragMoveEvent
+    main_window.PC_files.dropEvent = dropEventGen("PC")
+
+    main_window.MCU_files.setAcceptDrops(True) 
+    main_window.MCU_files.dragEnterEvent = dragEnterEvent
+    main_window.MCU_files.dragMoveEvent = dragMoveEvent
+    main_window.MCU_files.dropEvent = dropEventGen("MCU")
    
     # 串口调试工具
     port_dialog.Sending.clicked.connect(func_for_send_serial_msg)
@@ -282,7 +293,7 @@ def fresh_PC_files():
     if global_options["PC_PATH"] != ".\\":
         folders.append("..\\")
     for f in os.listdir(global_options["PC_PATH"]):
-        i = global_options["PC_PATH"] + f
+        i = os.path.join(global_options["PC_PATH"], f)
         if not i.endswith(".exe"):
             if os.path.isfile(i):
                 files.append(f)
@@ -319,7 +330,7 @@ def file_transport(device:str, file_name:str, out_name:str=None):
         out_name = file_name
     if serial_manager.pyb is not None:
         if device == "PC":
-            if os.path.isdir(global_options["PC_PATH"] + file_name):
+            if os.path.isdir(os.path.join(global_options["PC_PATH"], file_name)):
                 main_window.statusBar.showMessage(f"上传文件夹{file_name}中")
                 folder_copy(device, file_name)
                 return None
@@ -327,7 +338,7 @@ def file_transport(device:str, file_name:str, out_name:str=None):
                 main_window.statusBar.showMessage("不支持传输该文件类型")
             try:
                 serial_manager.pyb.enter_raw_repl()
-                serial_manager.pyb.fs_put(global_options["PC_PATH"] + file_name, global_options["MCU_PATH"]+out_name)
+                serial_manager.pyb.fs_put(os.path.join(global_options["PC_PATH"], file_name), global_options["MCU_PATH"]+out_name)
                 serial_manager.fresh_files(global_options["MCU_PATH"])
                 main_window.statusBar.showMessage(f"已传输{file_name}")
             except Exception as e:
@@ -338,12 +349,12 @@ def file_transport(device:str, file_name:str, out_name:str=None):
                 folder_copy(device, file_name)
             else:
                 try:
-                    if os.path.exists(global_options["PC_PATH"] + out_name):
+                    if os.path.exists(os.path.join(global_options["PC_PATH"], out_name)):
                         main_window.statusBar.showMessage(f"本地文件{out_name}被替换")
                     else:
                         main_window.statusBar.showMessage(f"下载文件{out_name}到本地")
                     serial_manager.pyb.enter_raw_repl()
-                    serial_manager.pyb.fs_get(global_options["MCU_PATH"]+file_name, global_options["PC_PATH"] + out_name)
+                    serial_manager.pyb.fs_get(global_options["MCU_PATH"]+file_name, os.path.join(global_options["PC_PATH"], out_name))
                     serial_manager.fresh_files(global_options["MCU_PATH"])
                     fresh_PC_files()
                 except Exception as e:
@@ -355,13 +366,13 @@ def remove_file(device:str, file_name:str):
     """删除文件"""
     global global_options
     if device == "PC":
-        if os.path.isdir(global_options["PC_PATH"] + file_name):
+        if os.path.isdir(os.path.join(global_options["PC_PATH"], file_name)):
             try:
-                os.rmdir(global_options["PC_PATH"] + file_name)
+                os.rmdir(os.path.join(global_options["PC_PATH"], file_name))
             except Exception as e:
                 main_window.statusBar.showMessage(str(e))
         else:
-            os.remove(global_options["PC_PATH"] + file_name)
+            os.remove(os.path.join(global_options["PC_PATH"], file_name))
         fresh_PC_files()
     elif device == "MCU":
         if serial_manager.pyb is not None:
@@ -388,10 +399,10 @@ def open_file(device:str, file_name:str):
     if device == "PC":
         if file_name == "..\\":
             go_pre_folder("PC")
-        elif os.path.isdir(global_options["PC_PATH"] + file_name):
+        elif os.path.isdir(os.path.join(global_options["PC_PATH"], file_name)):
             open_folder(folder=file_name)
         elif file_name.endswith(supported_file_types):
-            main_window.statusBar.showMessage(code_editor.open_file(global_options["PC_PATH"]+file_name))
+            main_window.statusBar.showMessage(code_editor.open_file(os.path.join(global_options["PC_PATH"], file_name)))
         else:
             main_window.statusBar.showMessage("不支持打开的文件类型")
             fresh_PC_files()
@@ -401,7 +412,7 @@ def open_file(device:str, file_name:str):
                 go_pre_folder("MCU") 
             elif not file_name in global_options["MCU_folders"]:
                 file_transport("MCU", file_name, "_"+file_name)
-                main_window.statusBar.showMessage(code_editor.open_file(global_options["PC_PATH"]+"_"+file_name))
+                main_window.statusBar.showMessage(code_editor.open_file(os.path.join(global_options["PC_PATH"],"_"+file_name)))
                 file_transport("PC", "_"+file_name, file_name)
                 remove_file("PC", "_"+file_name)
             else:
@@ -411,13 +422,13 @@ def open_file(device:str, file_name:str):
 
 def rename_file(file_name):
     """弹出一个小窗口重命名文件"""
-    if os.path.isdir(global_options["PC_PATH"]+file_name):
+    if os.path.isdir(os.path.join(global_options["PC_PATH"], file_name)):
         main_window.statusBar.showMessage(f"不支持重命名文件夹")
         return None
     fName, fType = split_file_name(file_name)
     after_name = code_editor.get_user_rename(fName, "重命名: ")
     if not os.path.exists(global_options["PC_PATH"]+after_name+fType):
-        os.rename(global_options["PC_PATH"]+file_name, global_options["PC_PATH"]+after_name+fType)
+        os.rename(os.path.join(global_options["PC_PATH"], file_name), os.path.join(global_options["PC_PATH"], after_name+fType))
         main_window.statusBar.showMessage(f"{file_name}->{after_name+fType}")
     else:
         main_window.statusBar.showMessage(f"{global_options['PC_PATH']+after_name+fType} already exists.")
@@ -438,10 +449,10 @@ def go_pre_folder(device="PC"):
     if device == "PC":
         if global_options["PC_PATH"] == ".\\":
             return None
-        for i in global_options["PC_PATH"].split("\\")[:-2]:
-            nowPath += i + "\\"
-        global_options["PC_PATH"] = nowPath
+        global_options["PC_PATH"] = os.path.join(global_options["PC_PATH"], "..")
+        global_options["PC_PATH"] = os.path.abspath(global_options["PC_PATH"])
         fresh_PC_files()
+    
     elif device == "MCU":
         if not global_options["MCU_PATH"]:
             return None
@@ -454,7 +465,9 @@ def open_folder(device="PC", folder:str=""):
     """进入文件夹"""
     global global_options
     if device == "PC":
-        global_options["PC_PATH"] += folder + "\\"
+        # print(os.path.join(global_options["PC_PATH"], folder))
+        global_options["PC_PATH"] = os.path.join(global_options["PC_PATH"], folder)
+        global_options["PC_PATH"] = os.path.abspath(global_options["PC_PATH"])
         fresh_PC_files()
     if device == "MCU":
         global_options["MCU_PATH"] += folder + "/"
@@ -468,12 +481,12 @@ def new_folder(device="PC", folder_name:str=None)->bool:
         folder_name=code_editor.get_user_rename("","新建文件夹: ")
     if folder_name:
         if device == "PC":
-            if not os.path.isdir(global_options["PC_PATH"] + folder_name):
-                os.mkdir(global_options["PC_PATH"] + '\\' + folder_name)
+            if not os.path.isdir(os.path.join(global_options["PC_PATH"], folder_name)):
+                os.mkdir(os.path.join(global_options["PC_PATH"], folder_name))
                 fresh_PC_files()
                 return True
             else:
-                main_window.statusBar.showMessage(f"{global_options['PC_PATH']+folder_name} already exists.")
+                main_window.statusBar.showMessage(f"{os.path.join(global_options['PC_PATH'], folder_name)} already exists.")
                 return False
             
         elif device == "MCU":
@@ -494,8 +507,8 @@ def new_file():
     """新建一个代码文件"""
     global global_options
     file_name=code_editor.get_user_rename("","新建代码文件: ")+".py"
-    if not os.path.exists(global_options["PC_PATH"] + file_name):
-        with open(global_options["PC_PATH"] + file_name, "w", encoding="utf-8") as f:
+    if not os.path.exists(os.path.join(global_options["PC_PATH"], file_name)):
+        with open(os.path.join(global_options["PC_PATH"], file_name), "w", encoding="utf-8") as f:
             f.write("# code here\n")
         fresh_PC_files()
     else:
@@ -541,6 +554,58 @@ def folder_recursion_copy(device):
     go_pre_folder("PC")
     go_pre_folder("MCU")
 
+# 实现拖拽功能的函数
+def dragEnterEvent(event:QDragEnterEvent):
+    if event.mimeData().hasUrls:
+        event.accept()
+    else:
+        event.ignore()
+
+def dragMoveEvent(event:QDragMoveEvent):
+    if event.mimeData().hasUrls:
+        event.setDropAction(PySide6.QtCore.Qt.CopyAction)
+        event.accept()
+    else:
+        event.ignore()
+
+def dropEventGen(device="PC"):
+    """生成拖放事件的闭包函数"""
+    def dropEvent(event:QDropEvent):
+        if event.mimeData().hasUrls:
+            event.setDropAction(PySide6.QtCore.Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                links.append(str(url.toLocalFile()))
+            DragDrop_file(device, links[0])
+        else:
+            event.ignore()
+    return dropEvent
+
+
+def DragDrop_file(device="PC", file_path="./"):
+    """处理拖放文件的函数"""
+    if device == "PC":
+        if os.path.isdir(file_path):
+            global_options["PC_PATH"] = file_path
+            fresh_PC_files()
+        else:
+            target = os.path.join(global_options["PC_PATH"], os.path.split(file_path)[-1])
+            if not os.path.exists(target):
+                shutil.copyfile(file_path, target)
+            else:
+                shutil.copyfile(file_path, "copy_"+target)
+            fresh_PC_files()
+    if device == "MCU":
+        if not os.path.isdir(file_path):
+            if "."+os.path.split(file_path)[-1].split(".")[-1] in supported_file_types:
+                try:
+                    serial_manager.pyb.enter_raw_repl()
+                    serial_manager.pyb.fs_put(file_path, global_options["MCU_PATH"]+os.path.split(file_path)[-1])
+                    serial_manager.fresh_files(global_options["MCU_PATH"])
+                    main_window.statusBar.showMessage(f"已传输{file_path}")
+                except Exception as e:
+                    func_for_serial_erro(str(e))
 
 def main():
     bind_methods()
