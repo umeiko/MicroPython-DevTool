@@ -27,7 +27,7 @@ global_options = {
     "temp_ports_list": [],
     "last_port"      : 0,
     "skin_mode"      : "Classic",
-    "PC_PATH"        : ".\\",
+    "PC_PATH"        : "./",
     "MCU_PATH"       :  "",
     "Now_Focus"      : "PC",
     "MCU_folders"    : []
@@ -269,7 +269,7 @@ def func_for_fresh_MCU_files(lst:list):
         main_window.MCU_files.addItem(a)
     
     if global_options["MCU_PATH"]:
-        mcuListAddItem("..\\", f":/ROOT/icons/backFolder.svg")
+        mcuListAddItem("../", f":/ROOT/icons/backFolder.svg")
         
     files_list = []
     global_options["MCU_folders"].clear()
@@ -290,8 +290,8 @@ def fresh_PC_files():
     main_window.PC_files.clear()
     files   = []
     folders = []
-    if global_options["PC_PATH"] != ".\\":
-        folders.append("..\\")
+    if global_options["PC_PATH"] != "./":
+        folders.append("../")
     for f in os.listdir(global_options["PC_PATH"]):
         i = os.path.join(global_options["PC_PATH"], f)
         if not i.endswith(".exe"):
@@ -304,7 +304,7 @@ def fresh_PC_files():
         a.setText(i)
         icon = QIcon()
         _, ext = split_file_name(i)
-        if i == "..\\":
+        if i == "../":
             icon.addFile(f":/ROOT/icons/backFolder.svg", QSize(), QIcon.Normal, QIcon.Off)
         else:
             icon.addFile(f":/ROOT/icons/folder.svg", QSize(), QIcon.Normal, QIcon.Off)
@@ -397,7 +397,7 @@ def open_file(device:str, file_name:str):
     """打开文件"""
     global global_options
     if device == "PC":
-        if file_name == "..\\":
+        if file_name == "../":
             go_pre_folder("PC")
         elif os.path.isdir(os.path.join(global_options["PC_PATH"], file_name)):
             open_folder(folder=file_name)
@@ -408,7 +408,7 @@ def open_file(device:str, file_name:str):
             fresh_PC_files()
     elif device == "MCU":
         try:
-            if file_name == "..\\":
+            if file_name == "../":
                 go_pre_folder("MCU") 
             elif not file_name in global_options["MCU_folders"]:
                 file_transport("MCU", file_name, "_"+file_name)
@@ -447,7 +447,7 @@ def go_pre_folder(device="PC"):
     global global_options
     nowPath = ""
     if device == "PC":
-        if global_options["PC_PATH"] == ".\\":
+        if global_options["PC_PATH"] == "./":
             return None
         global_options["PC_PATH"] = os.path.join(global_options["PC_PATH"], "..")
         global_options["PC_PATH"] = os.path.abspath(global_options["PC_PATH"])
@@ -531,7 +531,7 @@ def folder_recursion_copy(device):
     """递归地复制所有的文件及路径"""
     if device == "PC":
         for i in os.listdir(global_options["PC_PATH"]):
-            if os.path.isfile(f"{global_options['PC_PATH']}\\{i}"):
+            if os.path.isfile(f"{global_options['PC_PATH']}/{i}"):
                 file_transport("PC", i)
             else:
                 new_folder("MCU", i)

@@ -5,7 +5,7 @@ import threading
 import time
 from PySide6.QtCore import Qt, QRect, QSize, QMetaObject, QCoreApplication, Signal
 from PySide6.QtWidgets import QWidget, QTextEdit, QPlainTextEdit, QTextEdit, QDialog, QGridLayout, QLineEdit, QLabel
-from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon, QCursor, QKeyEvent
+from PySide6.QtGui import QColor, QPainter, QTextFormat, QShortcut, QIcon, QCursor, QKeyEvent, QTextCursor
 from pygments import highlight
 from pygments.lexers import Python3Lexer
 from pygments.formatters import HtmlFormatter
@@ -85,10 +85,10 @@ class QCodeEditor(QPlainTextEdit):
         if start_index != end_index:
             original_texts = curs.selection().toPlainText()
             curs.setPosition(end_index)
-            curs.movePosition(curs.EndOfBlock)
+            curs.movePosition(curs.MoveOperation.EndOfBlock)
             end_index = curs.position()
             curs.setPosition(start_index)
-            curs.movePosition(curs.StartOfBlock)
+            curs.movePosition(curs.MoveOperation.StartOfBlock)
             select_start = curs.position()
             self.textChanged.disconnect(self.codeHighlight)
             curs.insertText("\t")
@@ -104,8 +104,8 @@ class QCodeEditor(QPlainTextEdit):
                     self.textChanged.connect(self.codeHighlight)
                     self.codeHighlight(curs)
             # 选中多行
-            curs.setPosition(select_start, curs.MoveAnchor)
-            curs.setPosition(end_index+temp, curs.KeepAnchor)
+            curs.setPosition(select_start, curs.MoveMode.MoveAnchor)
+            curs.setPosition(end_index+temp, curs.MoveMode.KeepAnchor)
             self.setTextCursor(curs)
         else:
             curs.insertText("\t")
@@ -116,19 +116,19 @@ class QCodeEditor(QPlainTextEdit):
         start_index = curs.selectionStart()
         end_index = curs.selectionEnd()
         curs.setPosition(end_index)
-        curs.movePosition(curs.EndOfBlock)
+        curs.movePosition(curs.MoveOperation.EndOfBlock)
         end_index = curs.position()
         curs.setPosition(start_index)
-        curs.movePosition(curs.StartOfLine)
+        curs.movePosition(curs.MoveOperation.StartOfLine)
         start_index = curs.position()
-        curs.setPosition(start_index, curs.MoveAnchor)
-        curs.setPosition(end_index, curs.KeepAnchor)
+        curs.setPosition(start_index, curs.MoveMode.MoveAnchor)
+        curs.setPosition(end_index, curs.MoveMode.KeepAnchor)
         original_texts = curs.selection().toPlainText()
         atLineStart = True
         temp = 0
         for k, i in enumerate(original_texts):
             if atLineStart and i == "\t":
-                curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                curs.setPosition(start_index+temp+k, curs.MoveMode.MoveAnchor)
                 self.textChanged.disconnect(self.codeHighlight)
                 curs.deleteChar()
                 self.textChanged.connect(self.codeHighlight)
@@ -138,8 +138,8 @@ class QCodeEditor(QPlainTextEdit):
             else:
                 atLineStart = False
         # 选中多行
-        curs.setPosition(start_index, curs.MoveAnchor)
-        curs.setPosition(end_index+temp, curs.KeepAnchor)
+        curs.setPosition(start_index, curs.MoveMode.MoveAnchor)
+        curs.setPosition(end_index+temp, curs.MoveMode.KeepAnchor)
         self.setTextCursor(curs)
 
     def commentMultiLine(self):
@@ -148,15 +148,15 @@ class QCodeEditor(QPlainTextEdit):
         start_index = curs.selectionStart()
         end_index = curs.selectionEnd()
         curs.setPosition(end_index)
-        curs.movePosition(curs.EndOfBlock)
+        curs.movePosition(curs.MoveOperation.EndOfBlock)
         end_index = curs.position()
         curs.setPosition(start_index)
-        curs.movePosition(curs.StartOfLine)
+        curs.movePosition(curs.MoveOperation.StartOfLine)
         start_index = curs.position()
-        curs.setPosition(start_index, curs.MoveAnchor)
-        curs.setPosition(end_index, curs.KeepAnchor)
+        curs.setPosition(start_index, curs.MoveMode.MoveAnchor)
+        curs.setPosition(end_index, curs.MoveMode.KeepAnchor)
         original_texts = curs.selection().toPlainText()
-        curs.setPosition(start_index, curs.MoveAnchor)
+        curs.setPosition(start_index, curs.MoveMode.MoveAnchor)
         # 判断是加注释还是消除注释        
         add_comment = False
         for i in original_texts.splitlines():
@@ -168,7 +168,7 @@ class QCodeEditor(QPlainTextEdit):
             temp = 0
             for k, i in enumerate(original_texts):
                 if atLineStart:
-                    curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                    curs.setPosition(start_index+temp+k, curs.MoveMode.MoveAnchor)
                     self.textChanged.disconnect(self.codeHighlight)
                     curs.insertText("#")
                     self.textChanged.connect(self.codeHighlight)
@@ -180,7 +180,7 @@ class QCodeEditor(QPlainTextEdit):
             temp = 0
             for k, i in enumerate(original_texts):
                 if atLineStart:
-                    curs.setPosition(start_index+temp+k, curs.MoveAnchor)
+                    curs.setPosition(start_index+temp+k, curs.MoveMode.MoveAnchor)
                     self.textChanged.disconnect(self.codeHighlight)
                     curs.deleteChar()
                     self.textChanged.connect(self.codeHighlight)
@@ -189,8 +189,8 @@ class QCodeEditor(QPlainTextEdit):
                 atLineStart = True if i == "\n" else False
 
         # 选中多行
-        curs.setPosition(start_index, curs.MoveAnchor)
-        curs.setPosition(end_index+temp, curs.KeepAnchor)
+        curs.setPosition(start_index, curs.MoveMode.MoveAnchor)
+        curs.setPosition(end_index+temp, curs.MoveMode.KeepAnchor)
         self.setTextCursor(curs)
         
 
@@ -266,7 +266,8 @@ class QCodeEditor(QPlainTextEdit):
             oldPos = curs.position()
             self.textChanged.disconnect(self.codeHighlight)
             out = highlight(now_block.text(), self.lex, HtmlFormatter())
-            curs.select(curs.LineUnderCursor)
+            curs.select(
+                curs.SelectionType.LineUnderCursor)
             # print(f"-{now_block.text()}-{curs.selectedText()}-{out}\\")
             if now_block.text() and (curs.selectedText() == now_block.text()):
                 curs.deleteChar()
@@ -300,10 +301,10 @@ class QCodeEditor(QPlainTextEdit):
                 if not self.initCursor.atStart():
                     self.initCursor.insertText('\n')
                 out = highlight(content, self.lex, HtmlFormatter())
-                self.initCursor.select(self.initCursor.BlockUnderCursor)
+                self.initCursor.select(self.initCursor.SelectionType.BlockUnderCursor)
                 self.initCursor.deleteChar()
                 self.initCursor.insertHtml(f'<style type="text/css">{self.css}</style>{out}'[:-2])
-            self.initCursor.movePosition(self.initCursor.NextBlock)
+            self.initCursor.movePosition(self.initCursor.MoveOperation.NextBlock)
             self.textChanged.connect(self.codeHighlight)
             self.closeLock.release()
     
