@@ -21,6 +21,9 @@
 &nbsp;&nbsp;&nbsp;&nbsp;clone本项目的仓库地址
 
     git clone https://github.com/umeiko/MicroPython-DevTool.git
+&nbsp;&nbsp;&nbsp;&nbsp;进入项目目录
+
+    cd MicroPython-DevTool
 &nbsp;&nbsp;&nbsp;&nbsp;安装需要的依赖库
 
     pip install -r requirments.txt
