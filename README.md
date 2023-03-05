@@ -55,7 +55,7 @@
 ## 常见问题
 1. 无法选择到端口，插上单片机后端口列表是空的
     - 确认连接正常，确认数据线支持数据传输，确认单片机具备串口芯片。
-    - 安装对应的串口芯片驱动程序。
+    - 安装对应的串口芯片驱动程序。常见的驱动有：[CH340](http://www.wch-ic.com/downloads/CH341SER_EXE.html)，[CP2102](https://www.silabs.com/interface/usb-bridges/classic/device.cp2102?tab=softwareandtools)
 2. 能够看见端口，但无法选择这个端口
     - 确认这个端口 就是 单片机所对应的端口（可在设备管理器中拔插单片机确认）
     - 确认单片机中烧录了MicroPython固件 （[烧录工具](https://github.com/umeiko/ESPTOOL-GUI), [固件下载](https://micropython.org/download/)）
